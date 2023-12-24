@@ -1,14 +1,21 @@
 package ru.practicum.shareit.item.dto;
 
 import lombok.Builder;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Value;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 
-@Data
+@Value
 @Builder(toBuilder = true)
+@EqualsAndHashCode(of = "id")
 public class ItemDto {
+    private final long id;
+    @NotBlank
+    private final String name;
     @NotBlank
     private final String description;
-    private final boolean available;
+    @NotNull
+    private final Boolean available;
 }

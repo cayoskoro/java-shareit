@@ -3,8 +3,8 @@ package ru.practicum.shareit.user.repository.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
-import ru.practicum.shareit.exception.ConflictException;
-import ru.practicum.shareit.exception.NotFoundException;
+import ru.practicum.shareit.common.exception.ConflictException;
+import ru.practicum.shareit.common.exception.NotFoundException;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -38,6 +38,12 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public User create(User user) {
+        User existingUserByEmail = findByEmail(user.getEmail());
+        if (existingUserByEmail != null && existingUserByEmail.getId() != user.getId()) {
+            log.info("Данный email - {} уже существует", user.getEmail());
+            throw new ConflictException(String.format("Данный email - %s уже существует", user.getEmail()));
+        }
+
         User createdUser = user.toBuilder()
                 .id(generateId())
                 .build();
@@ -55,9 +61,15 @@ public class UserRepositoryImpl implements UserRepository {
                     user.getId()));
         }
 
-        User updatedUser = storage.put(user.getId(), user);
-        log.info("Обновлен пользователь - {}", updatedUser);
-        return updatedUser;
+        User existingUserByEmail = findByEmail(user.getEmail());
+        if (existingUserByEmail != null && existingUserByEmail.getId() != user.getId()) {
+            log.info("Данный email - {} уже существует", user.getEmail());
+            throw new ConflictException(String.format("Данный email - %s уже существует", user.getEmail()));
+        }
+
+        storage.put(user.getId(), user);
+        log.info("Обновлен пользователь - {}", user);
+        return user;
     }
 
     @Override
@@ -67,6 +79,7 @@ public class UserRepositoryImpl implements UserRepository {
         return removedUser;
     }
 
+    @Override
     public User findByEmail(String email) {
         return storage.values().stream()
                 .filter(it -> it.getEmail().equals(email))

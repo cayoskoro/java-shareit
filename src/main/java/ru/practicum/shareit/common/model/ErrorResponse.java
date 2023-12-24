@@ -1,4 +1,4 @@
-package ru.practicum.shareit;
+package ru.practicum.shareit.common.model;
 
 import lombok.Data;
 

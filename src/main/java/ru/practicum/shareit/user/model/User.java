@@ -1,6 +1,8 @@
 package ru.practicum.shareit.user.model;
 
-import lombok.*;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
@@ -10,6 +12,7 @@ import javax.validation.constraints.NotNull;
 @Builder(toBuilder = true)
 @EqualsAndHashCode(of = "id")
 public class User {
+    @NotNull
     private long id;
     @NotBlank
     private String name;

@@ -1,6 +1,8 @@
 package ru.practicum.shareit.item.model;
 
-import lombok.*;
+import lombok.Builder;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import ru.practicum.shareit.user.model.User;
 
 import javax.validation.constraints.NotBlank;
@@ -11,10 +13,10 @@ import javax.validation.constraints.NotNull;
 @EqualsAndHashCode(of = "id")
 public class Item {
     @NotNull
-    private final long id;
-    private final String name;
+    private long id;
+    private String name;
     @NotBlank
-    private final String description;
-    private final boolean available;
-    private final User owner;
+    private String description;
+    private boolean available;
+    private User owner;
 }

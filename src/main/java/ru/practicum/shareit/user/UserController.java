@@ -11,7 +11,6 @@ import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
 
-import javax.validation.Valid;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
@@ -43,7 +42,7 @@ public class UserController {
 
     @PatchMapping("/{userId}")
     public UserDto update(@PathVariable long userId, @Validated(UserUpdate.class) @RequestBody UserDto userDto) {
-        User existingUser = service.getById(userId);
+        User existingUser = mapper.clone(service.getById(userId));
         mapper.updateUserFromDto(userDto, existingUser);
         return mapper.convertToDto(service.update(existingUser));
     }
