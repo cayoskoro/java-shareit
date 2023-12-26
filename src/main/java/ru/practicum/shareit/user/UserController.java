@@ -7,12 +7,9 @@ import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.user.constraint.UserBase;
 import ru.practicum.shareit.user.constraint.UserUpdate;
 import ru.practicum.shareit.user.dto.UserDto;
-import ru.practicum.shareit.user.mapper.UserMapper;
-import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.service.UserService;
 
 import java.util.Collection;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/users")
@@ -20,35 +17,29 @@ import java.util.stream.Collectors;
 @Slf4j
 public class UserController {
     private final UserService service;
-    private final UserMapper mapper;
 
     @GetMapping
     public Collection<UserDto> getAll() {
-        return service.getAll().stream()
-                .map(mapper::convertToDto)
-                .collect(Collectors.toList());
+        return service.getAll();
     }
 
     @GetMapping("/{userId}")
     public UserDto getById(@PathVariable long userId) {
-        return mapper.convertToDto(service.getById(userId));
+        return service.getById(userId);
     }
 
     @PostMapping
     public UserDto create(@Validated(UserBase.class) @RequestBody UserDto userDto) {
-        User user = mapper.convertToEntity(userDto);
-        return mapper.convertToDto(service.create(user));
+        return service.create(userDto);
     }
 
     @PatchMapping("/{userId}")
     public UserDto update(@PathVariable long userId, @Validated(UserUpdate.class) @RequestBody UserDto userDto) {
-        User existingUser = mapper.clone(service.getById(userId));
-        mapper.updateUserFromDto(userDto, existingUser);
-        return mapper.convertToDto(service.update(existingUser));
+        return service.update(userId, userDto);
     }
 
     @DeleteMapping("/{userId}")
     public UserDto delete(@PathVariable long userId) {
-        return mapper.convertToDto(service.delete(userId));
+        return service.delete(userId);
     }
 }

@@ -4,43 +4,53 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.common.exception.ConflictException;
+import ru.practicum.shareit.user.dto.UserDto;
+import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 import ru.practicum.shareit.user.service.UserService;
 
 import java.util.Collection;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 @Slf4j
 public class UserServiceImpl implements UserService {
+    private final UserMapper mapper;
     private final UserRepository repository;
 
     @Override
-    public Collection<User> getAll() {
-        return repository.findAll();
+    public Collection<UserDto> getAll() {
+        return repository.findAll().stream()
+                .map(mapper::convertToDto)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public User getById(long id) {
-        return repository.findById(id);
+    public UserDto getById(long id) {
+        return mapper.convertToDto(repository.findById(id));
     }
 
     @Override
-    public User create(User user) {
+    public UserDto create(UserDto userDto) {
+        User user = mapper.convertToEntity(userDto);
         checkUniqueUserByEmail(user);
-        return repository.create(user);
+        return mapper.convertToDto(repository.create(user));
     }
 
     @Override
-    public User update(User user) {
-        checkUniqueUserByEmail(user);
-        return repository.update(user);
+    public UserDto update(long userId, UserDto userDto) {
+        User updatingUser = mapper.clone(repository.findById(userId));
+        mapper.updateUserFromDto(userDto, updatingUser);
+        log.info("Пользователь подготовлен к обновлению - {}", updatingUser);
+        checkUniqueUserByEmail(updatingUser);
+        return mapper.convertToDto(repository.update(updatingUser));
     }
 
     @Override
-    public User delete(long id) {
-        return repository.delete(id);
+    public UserDto delete(long id) {
+        return mapper.convertToDto(repository.delete(id));
     }
 
     private void checkUniqueUserByEmail(User user) {

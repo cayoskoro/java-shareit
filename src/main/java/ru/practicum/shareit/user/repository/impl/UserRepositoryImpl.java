@@ -3,7 +3,6 @@ package ru.practicum.shareit.user.repository.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
-import ru.practicum.shareit.common.exception.ConflictException;
 import ru.practicum.shareit.common.exception.NotFoundException;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
@@ -38,12 +37,6 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public User create(User user) {
-        User existingUserByEmail = findByEmail(user.getEmail());
-        if (existingUserByEmail != null && existingUserByEmail.getId() != user.getId()) {
-            log.info("Данный email - {} уже существует", user.getEmail());
-            throw new ConflictException(String.format("Данный email - %s уже существует", user.getEmail()));
-        }
-
         User createdUser = user.toBuilder()
                 .id(generateId())
                 .build();
@@ -59,12 +52,6 @@ public class UserRepositoryImpl implements UserRepository {
             log.info("Обновляемого пользователя с id = {} не существует", user.getId());
             throw new NotFoundException(String.format("Обновляемого пользователя с id = %s не существует",
                     user.getId()));
-        }
-
-        User existingUserByEmail = findByEmail(user.getEmail());
-        if (existingUserByEmail != null && existingUserByEmail.getId() != user.getId()) {
-            log.info("Данный email - {} уже существует", user.getEmail());
-            throw new ConflictException(String.format("Данный email - %s уже существует", user.getEmail()));
         }
 
         storage.put(user.getId(), user);
