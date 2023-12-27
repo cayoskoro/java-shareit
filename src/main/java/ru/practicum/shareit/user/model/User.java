@@ -1,22 +1,22 @@
-package ru.practicum.shareit.item.model;
+package ru.practicum.shareit.user.model;
 
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import ru.practicum.shareit.user.model.User;
 
+import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 @Data
 @Builder(toBuilder = true)
 @EqualsAndHashCode(of = "id")
-public class Item {
+public class User {
     @NotNull
     private long id;
-    private String name;
     @NotBlank
-    private String description;
-    private boolean available;
-    private User owner;
+    private String name;
+    @NotNull
+    @Email
+    private String email;
 }
