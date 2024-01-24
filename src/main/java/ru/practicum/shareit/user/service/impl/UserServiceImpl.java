@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import ru.practicum.shareit.common.exception.ConflictException;
+import ru.practicum.shareit.common.exception.NotFoundException;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
@@ -29,28 +30,38 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto getById(long id) {
-        return mapper.convertToDto(repository.findById(id));
+        User user = repository.findById(id)
+                .orElseThrow(() -> new NotFoundException(String.format("Пользователя по id = %s не существует", id)));
+        log.info("Запрос пользователя по id = {} - {}", id, user);
+        return mapper.convertToDto(user);
     }
 
     @Override
     public UserDto create(UserDto userDto) {
         User user = mapper.convertToEntity(userDto);
         checkUniqueUserByEmail(user);
-        return mapper.convertToDto(repository.create(user));
+        log.info("Добавлен новый пользователь - {}", user);
+        return mapper.convertToDto(repository.save(user));
     }
 
     @Override
     public UserDto update(long userId, UserDto userDto) {
-        User updatingUser = mapper.clone(repository.findById(userId));
+        User user = repository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(
+                        String.format("Пользователя по id = %s не существует", userId)));
+        User updatingUser = mapper.clone(user);
         mapper.updateUserFromDto(userDto, updatingUser);
         log.info("Пользователь подготовлен к обновлению - {}", updatingUser);
         checkUniqueUserByEmail(updatingUser);
-        return mapper.convertToDto(repository.update(updatingUser));
+        return mapper.convertToDto(repository.save(updatingUser));
     }
 
     @Override
-    public UserDto delete(long id) {
-        return mapper.convertToDto(repository.delete(id));
+    public void delete(long id) {
+        User user = repository.findById(id)
+                .orElseThrow(() -> new NotFoundException(String.format("Пользователя по id = %s не существует", id)));
+        repository.delete(user);
+        log.info("Удален пользователь - {}", user);
     }
 
     private void checkUniqueUserByEmail(User user) {

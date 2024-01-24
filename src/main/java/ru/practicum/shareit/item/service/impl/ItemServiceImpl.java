@@ -28,29 +28,36 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public Collection<ItemDto> getAllUserItems(long userId) {
-        userRepository.findById(userId);
-        return itemRepository.findAllUserItems(userId).stream()
+        checkIfUserExists(userId);
+        return itemRepository.findAllByOwnerId(userId).stream()
                 .map(mapper::convertToDto)
                 .collect(Collectors.toList());
     }
 
     @Override
     public ItemDto getItemById(long itemId) {
-        return mapper.convertToDto(itemRepository.findById(itemId));
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new NotFoundException(String.format("Вещь по id = %s не существует", itemId)));
+        log.info("Запрос вещи по id = {} - {}", itemId, item);
+        return mapper.convertToDto(item);
     }
 
     @Override
     public ItemDto addNewItem(long userId, ItemDto itemDto) {
-        User user = userRepository.findById(userId);
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(
+                        String.format("Пользователя по id = %s не существует", userId)));
         Item item = mapper.convertToEntity(itemDto);
         item.setOwner(user);
-        return mapper.convertToDto(itemRepository.create(item));
+        return mapper.convertToDto(itemRepository.save(item));
     }
 
     @Override
     public ItemDto editItem(long userId, long itemId, ItemDto itemDto) {
         checkIfUserExists(userId);
-        Item updatingItem = mapper.clone(itemRepository.findById(itemId));
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new NotFoundException(String.format("Вещь по id = %s не существует", itemId)));
+        Item updatingItem = mapper.clone(item);
         mapper.updateItemFromItemDto(itemDto, updatingItem);
         log.info("Вещь подготовленная к обновлению - {}", updatingItem);
         if (updatingItem.getOwner().getId() != userId) {
@@ -58,7 +65,7 @@ public class ItemServiceImpl implements ItemService {
             throw new NotFoundException(String.format("Пользователь по id = %s не является владельцом вещи вещи - %s",
                     userId, updatingItem));
         }
-        return mapper.convertToDto(itemRepository.update(updatingItem));
+        return mapper.convertToDto(itemRepository.save(updatingItem));
     }
 
     @Override
@@ -70,7 +77,7 @@ public class ItemServiceImpl implements ItemService {
             throw new IncorrectParameterException(String.format("Передан некорректный параметр text = %s", text));
         }
         log.info("Осуществляется поиск по подстроке - {}", text);
-        return itemRepository.searchItems(text).stream()
+        return itemRepository.searchAvailableByNameOrDescriptionContainingIgnoreCase(text).stream()
                 .map(mapper::convertToDto)
                 .collect(Collectors.toList());
     }

@@ -1,6 +1,7 @@
 package ru.practicum.shareit.booking.model;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
@@ -8,6 +9,7 @@ import javax.persistence.*;
 import java.time.Instant;
 
 @Data
+@EqualsAndHashCode(of = "id")
 @Entity
 @Table(name = "bookings", schema = "public")
 public class Booking {
@@ -26,5 +28,5 @@ public class Booking {
     private User booker;
     @Column(name = "status", length = 50, nullable = false)
     @Enumerated(EnumType.STRING)
-    private State status;
+    private Status status;
 }

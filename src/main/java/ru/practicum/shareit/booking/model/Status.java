@@ -1,5 +1,5 @@
 package ru.practicum.shareit.booking.model;
 
-public enum State {
+public enum Status {
     ALL, CURRENT, PAST, FUTURE, WAITING, REJECTED
 }
