@@ -12,6 +12,7 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
     @Query("select it " +
             "from Item as it " +
             "where it.available is true " +
-            "and (upper(it.name) like upper(?1) or upper(it.description) like upper(?1))")
+            "and (upper(it.name) like concat('%', upper(?1), '%') " +
+            "or upper(it.description) like concat('%', upper(?1), '%'))")
     public Collection<Item> searchAvailableByNameOrDescriptionContainingIgnoreCase(String text);
 }
