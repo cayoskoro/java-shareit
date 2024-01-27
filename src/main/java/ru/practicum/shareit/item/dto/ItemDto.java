@@ -11,7 +11,7 @@ import javax.validation.constraints.NotNull;
 @Builder(toBuilder = true)
 @EqualsAndHashCode(of = "id")
 public class ItemDto {
-    private final long id;
+    private final Long id;
     @NotBlank
     private final String name;
     @NotBlank

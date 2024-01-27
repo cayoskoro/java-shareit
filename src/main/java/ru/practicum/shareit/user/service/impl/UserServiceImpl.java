@@ -39,7 +39,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto create(UserDto userDto) {
         User user = mapper.convertToEntity(userDto);
-        checkUniqueUserByEmail(user);
+//        checkUniqueUserByEmail(user);
         log.info("Добавлен новый пользователь - {}", user);
         return mapper.convertToDto(repository.save(user));
     }
@@ -52,7 +52,7 @@ public class UserServiceImpl implements UserService {
         User updatingUser = mapper.clone(user);
         mapper.updateUserFromDto(userDto, updatingUser);
         log.info("Пользователь подготовлен к обновлению - {}", updatingUser);
-        checkUniqueUserByEmail(updatingUser);
+//        checkUniqueUserByEmail(updatingUser);
         return mapper.convertToDto(repository.save(updatingUser));
     }
 
