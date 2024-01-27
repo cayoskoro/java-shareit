@@ -62,7 +62,7 @@ public class ItemServiceImpl implements ItemService {
         log.info("Вещь подготовленная к обновлению - {}", updatingItem);
         if (updatingItem.getOwner().getId() != userId) {
             log.info("Пользователь по id = {} не является владельцом вещи - {}", userId, updatingItem);
-            throw new NotFoundException(String.format("Пользователь по id = %s не является владельцом вещи вещи - %s",
+            throw new NotFoundException(String.format("Пользователь по id = %s не является владельцом вещи - %s",
                     userId, updatingItem));
         }
         return mapper.convertToDto(itemRepository.save(updatingItem));

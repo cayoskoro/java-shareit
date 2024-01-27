@@ -7,16 +7,15 @@ import ru.practicum.shareit.user.model.User;
 
 import javax.validation.constraints.NotNull;
 import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Value
 @Builder(toBuilder = true)
-@EqualsAndHashCode(of = "id")
 public class BookingDto {
     private final Long id;
-    private final Instant start;
-    private final Instant end;
+    private final LocalDateTime start;
+    private final LocalDateTime end;
     private final Item item;
     private final User booker;
-    @NotNull
     private final Status status;
 }

@@ -39,7 +39,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public UserDto create(UserDto userDto) {
         User user = mapper.convertToEntity(userDto);
-//        checkUniqueUserByEmail(user);
         log.info("Добавлен новый пользователь - {}", user);
         return mapper.convertToDto(repository.save(user));
     }
@@ -52,7 +51,6 @@ public class UserServiceImpl implements UserService {
         User updatingUser = mapper.clone(user);
         mapper.updateUserFromDto(userDto, updatingUser);
         log.info("Пользователь подготовлен к обновлению - {}", updatingUser);
-//        checkUniqueUserByEmail(updatingUser);
         return mapper.convertToDto(repository.save(updatingUser));
     }
 
@@ -62,13 +60,5 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new NotFoundException(String.format("Пользователя по id = %s не существует", id)));
         repository.delete(user);
         log.info("Удален пользователь - {}", user);
-    }
-
-    private void checkUniqueUserByEmail(User user) {
-        User existingUserByEmail = repository.findByEmail(user.getEmail());
-        if (existingUserByEmail != null && existingUserByEmail.getId() != user.getId()) {
-            log.info("Данный email - {} уже существует", user.getEmail());
-            throw new ConflictException(String.format("Данный email - %s уже существует", user.getEmail()));
-        }
     }
 }
