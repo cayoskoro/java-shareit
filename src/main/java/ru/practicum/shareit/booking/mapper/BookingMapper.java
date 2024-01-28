@@ -1,9 +1,11 @@
 package ru.practicum.shareit.booking.mapper;
 
-import org.mapstruct.*;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
 import org.mapstruct.control.DeepClone;
-import ru.practicum.shareit.booking.dto.BookingResponseDto;
 import ru.practicum.shareit.booking.dto.BookingRequestDto;
+import ru.practicum.shareit.booking.dto.BookingResponseDto;
+import ru.practicum.shareit.booking.dto.BookingResponseShortDto;
 import ru.practicum.shareit.booking.model.Booking;
 
 @Mapper(componentModel = "spring", mappingControl = DeepClone.class)
@@ -12,4 +14,7 @@ public interface BookingMapper {
     Booking convertRequestDtoToEntity(BookingRequestDto dto);
 
     BookingResponseDto convertToResponseDto(Booking entity);
+
+    @Mapping(target = "bookerId", source = "booker.id")
+    BookingResponseShortDto convertToResponseShortDto(Booking entity);
 }

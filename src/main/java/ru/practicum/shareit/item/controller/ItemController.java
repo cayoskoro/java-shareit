@@ -26,7 +26,7 @@ public class ItemController {
 
     @GetMapping("/{itemId}")
     public ItemResponseDto getItemById(@RequestHeader(HEADER_USER_ID) long userId, @PathVariable long itemId) {
-        return service.getItemById(itemId);
+        return service.getItemById(userId, itemId);
     }
 
     @PostMapping
@@ -49,7 +49,7 @@ public class ItemController {
 
     @PostMapping("/{itemId}/comment")
     public CommentDto addNewComment(@RequestHeader(HEADER_USER_ID) long userId, @PathVariable long itemId,
-                                    @RequestBody CommentDto commentDto) {
+                                    @RequestBody @Valid CommentDto commentDto) {
         return service.addNewComment(userId, itemId, commentDto);
     }
 }

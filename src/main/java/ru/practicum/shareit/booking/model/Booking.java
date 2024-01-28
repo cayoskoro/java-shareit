@@ -6,9 +6,7 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
 import javax.persistence.*;
-import java.time.Instant;
 import java.time.LocalDateTime;
-import java.util.Date;
 
 @Data
 @EqualsAndHashCode(of = "id")

@@ -4,7 +4,7 @@ import lombok.Data;
 import ru.practicum.shareit.user.model.User;
 
 import javax.persistence.*;
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Data
 @Entity
@@ -22,5 +22,5 @@ public class Comment {
     @JoinColumn(name = "author_id", nullable = false)
     private User author;
     @Column(name = "created", nullable = false)
-    private Instant created = Instant.now();
+    private LocalDateTime created;
 }

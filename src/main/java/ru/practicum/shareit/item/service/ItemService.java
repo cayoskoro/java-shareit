@@ -11,7 +11,7 @@ import java.util.Collection;
 public interface ItemService {
     public Collection<ItemResponseDto> getAllUserItems(long userId);
 
-    public ItemResponseDto getItemById(long itemId);
+    public ItemResponseDto getItemById(long userId, long itemId);
 
     @Transactional
     public ItemResponseDto addNewItem(long userId, ItemRequestDto itemDto);

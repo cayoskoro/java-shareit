@@ -3,8 +3,8 @@ package ru.practicum.shareit.booking.service.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.booking.dto.BookingResponseDto;
 import ru.practicum.shareit.booking.dto.BookingRequestDto;
+import ru.practicum.shareit.booking.dto.BookingResponseDto;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.State;
@@ -14,6 +14,7 @@ import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.common.exception.IncorrectParameterException;
 import ru.practicum.shareit.common.exception.NotAvailableException;
 import ru.practicum.shareit.common.exception.NotFoundException;
+import ru.practicum.shareit.common.exception.UnsupportedStateException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.user.model.User;
@@ -34,9 +35,8 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public BookingResponseDto getBookingById(long userId, long bookingId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException(
-                        String.format("Пользователя по id = %s не существует", userId)));
+        checkIfUserExists(userId);
+
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(() -> new NotFoundException(String.format("Аренды по id = %s не существует", bookingId)));
 
@@ -52,13 +52,13 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public Collection<BookingResponseDto> getAllBookings(long userId, State state) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException(
-                        String.format("Пользователя по id = %s не существует", userId)));
+    public Collection<BookingResponseDto> getAllBookings(long userId, String stateStr) {
+        State state = convertToStateOrElseThrow(stateStr);
+        checkIfUserExists(userId);
 
         Collection<Booking> bookings;
         LocalDateTime currentTime = LocalDateTime.now();
+
         switch (state) {
             case ALL:
                 bookings = bookingRepository.findAllByBookerIdOrderByStartDesc(userId);
@@ -80,8 +80,7 @@ public class BookingServiceImpl implements BookingService {
                 bookings = bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, Status.REJECTED);
                 break;
             default:
-                throw new IncorrectParameterException(String.format(
-                        "Введен некорректный параметр поиска state - %s", state));
+                throw new UnsupportedStateException("Unknown state: " + stateStr);
         }
 
         log.info("Список всех бронирований текущего пользователя = {} с параметром state = {}: {}", userId,
@@ -92,13 +91,13 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public Collection<BookingResponseDto> getAllOwnerBookings(long userId, State state) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException(
-                        String.format("Пользователя по id = %s не существует", userId)));
+    public Collection<BookingResponseDto> getAllOwnerBookings(long userId, String stateStr) {
+        State state = convertToStateOrElseThrow(stateStr);
+        checkIfUserExists(userId);
 
         Collection<Booking> bookings;
         LocalDateTime currentTime = LocalDateTime.now();
+
         switch (state) {
             case ALL:
                 bookings = bookingRepository.findAllByItemOwnerIdOrderByStartDesc(userId);
@@ -120,8 +119,7 @@ public class BookingServiceImpl implements BookingService {
                 bookings = bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(userId, Status.REJECTED);
                 break;
             default:
-                throw new IncorrectParameterException(String.format(
-                        "Введен некорректный параметр поиска state - %s", state));
+                throw new UnsupportedStateException("Unknown state: " + stateStr);
         }
 
         log.info("Список бронирований для всех вещей текущего пользователя = {} с параметром state = {}: {}", userId,
@@ -178,5 +176,19 @@ public class BookingServiceImpl implements BookingService {
 
         booking.setStatus(status);
         return mapper.convertToResponseDto(bookingRepository.save(booking));
+    }
+
+    private void checkIfUserExists(long userId) {
+        userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(
+                        String.format("Пользователя по id = %s не существует", userId)));
+    }
+
+    private State convertToStateOrElseThrow(String state) {
+        try {
+            return State.valueOf(state);
+        } catch (Exception e) {
+            throw new UnsupportedStateException("Unknown state: " + state);
+        }
     }
 }

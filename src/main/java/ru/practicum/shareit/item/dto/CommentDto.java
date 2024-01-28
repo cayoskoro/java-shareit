@@ -4,7 +4,7 @@ import lombok.Builder;
 import lombok.Value;
 
 import javax.validation.constraints.NotBlank;
-import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Value
 @Builder(toBuilder = true)
@@ -13,5 +13,5 @@ public class CommentDto {
     @NotBlank
     private final String text;
     private final String authorName;
-    private final Instant created;
+    private final LocalDateTime created;
 }

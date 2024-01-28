@@ -1,7 +1,6 @@
 package ru.practicum.shareit.user.dto;
 
 import lombok.Builder;
-import lombok.EqualsAndHashCode;
 import lombok.Value;
 import ru.practicum.shareit.user.constraint.UserBase;
 import ru.practicum.shareit.user.constraint.UserUpdate;
