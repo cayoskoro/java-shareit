@@ -6,9 +6,14 @@ import org.springframework.stereotype.Service;
 import ru.practicum.shareit.common.exception.IncorrectParameterException;
 import ru.practicum.shareit.common.exception.NotFoundException;
 import ru.practicum.shareit.common.util.Constants;
-import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.CommentDto;
+import ru.practicum.shareit.item.dto.ItemRequestDto;
+import ru.practicum.shareit.item.dto.ItemResponseDto;
+import ru.practicum.shareit.item.mapper.CommentMapper;
 import ru.practicum.shareit.item.mapper.ItemMapper;
+import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.item.service.ItemService;
 import ru.practicum.shareit.user.model.User;
@@ -22,54 +27,56 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class ItemServiceImpl implements ItemService {
-    private final ItemMapper mapper;
+    private final ItemMapper itemMapper;
+    private final CommentMapper commentMapper;
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
+    private final CommentRepository commentRepository;
 
     @Override
-    public Collection<ItemDto> getAllUserItems(long userId) {
+    public Collection<ItemResponseDto> getAllUserItems(long userId) {
         checkIfUserExists(userId);
         return itemRepository.findAllByOwnerId(userId).stream()
-                .map(mapper::convertToDto)
+                .map(itemMapper::convertToResponseDto)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public ItemDto getItemById(long itemId) {
+    public ItemResponseDto getItemById(long itemId) {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException(String.format("Вещь по id = %s не существует", itemId)));
         log.info("Запрос вещи по id = {} - {}", itemId, item);
-        return mapper.convertToDto(item);
+        return itemMapper.convertToResponseDto(item);
     }
 
     @Override
-    public ItemDto addNewItem(long userId, ItemDto itemDto) {
+    public ItemResponseDto addNewItem(long userId, ItemRequestDto itemDto) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException(
                         String.format("Пользователя по id = %s не существует", userId)));
-        Item item = mapper.convertToEntity(itemDto);
+        Item item = itemMapper.convertRequestDtoToEntity(itemDto);
         item.setOwner(user);
-        return mapper.convertToDto(itemRepository.save(item));
+        return itemMapper.convertToResponseDto(itemRepository.save(item));
     }
 
     @Override
-    public ItemDto editItem(long userId, long itemId, ItemDto itemDto) {
+    public ItemResponseDto editItem(long userId, long itemId, ItemRequestDto itemDto) {
         checkIfUserExists(userId);
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new NotFoundException(String.format("Вещь по id = %s не существует", itemId)));
-        Item updatingItem = mapper.clone(item);
-        mapper.updateItemFromItemDto(itemDto, updatingItem);
+        Item updatingItem = itemMapper.clone(item);
+        itemMapper.updateItemFromItemRequestDto(itemDto, updatingItem);
         log.info("Вещь подготовленная к обновлению - {}", updatingItem);
         if (updatingItem.getOwner().getId() != userId) {
             log.info("Пользователь по id = {} не является владельцом вещи - {}", userId, updatingItem);
             throw new NotFoundException(String.format("Пользователь по id = %s не является владельцом вещи - %s",
                     userId, updatingItem));
         }
-        return mapper.convertToDto(itemRepository.save(updatingItem));
+        return itemMapper.convertToResponseDto(itemRepository.save(updatingItem));
     }
 
     @Override
-    public Collection<ItemDto> searchItems(String text) {
+    public Collection<ItemResponseDto> searchItems(String text) {
         if (text.isEmpty()) {
             return Collections.emptyList();
         } else if (!Constants.getAlphaNumericPattern().matcher(text).matches()) {
@@ -78,8 +85,20 @@ public class ItemServiceImpl implements ItemService {
         }
         log.info("Осуществляется поиск по подстроке - {}", text);
         return itemRepository.searchAvailableByNameOrDescriptionContainingIgnoreCase(text).stream()
-                .map(mapper::convertToDto)
+                .map(itemMapper::convertToResponseDto)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public CommentDto addNewComment(long userId, long itemId, CommentDto commentDto) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(
+                        String.format("Пользователя по id = %s не существует", userId)));
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new NotFoundException(String.format("Вещь по id = %s не существует", itemId)));
+        Comment comment = commentMapper.convertToEntity(commentDto);
+        comment.setItem(item);
+        return commentMapper.convertToDto(commentRepository.save(comment));
     }
 
     private void checkIfUserExists(long userId) {

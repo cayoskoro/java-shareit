@@ -3,7 +3,7 @@ package ru.practicum.shareit.booking.service.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.booking.dto.BookingDto;
+import ru.practicum.shareit.booking.dto.BookingResponseDto;
 import ru.practicum.shareit.booking.dto.BookingRequestDto;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
@@ -33,7 +33,7 @@ public class BookingServiceImpl implements BookingService {
     private final ItemRepository itemRepository;
 
     @Override
-    public BookingDto getBookingById(long userId, long bookingId) {
+    public BookingResponseDto getBookingById(long userId, long bookingId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException(
                         String.format("Пользователя по id = %s не существует", userId)));
@@ -48,11 +48,11 @@ public class BookingServiceImpl implements BookingService {
                             userId, booking));
         }
 
-        return mapper.convertToDto(booking);
+        return mapper.convertToResponseDto(booking);
     }
 
     @Override
-    public Collection<BookingDto> getAllBookings(long userId, State state) {
+    public Collection<BookingResponseDto> getAllBookings(long userId, State state) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException(
                         String.format("Пользователя по id = %s не существует", userId)));
@@ -87,12 +87,12 @@ public class BookingServiceImpl implements BookingService {
         log.info("Список всех бронирований текущего пользователя = {} с параметром state = {}: {}", userId,
                 state, bookings);
         return bookings.stream()
-                .map(mapper::convertToDto)
+                .map(mapper::convertToResponseDto)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public Collection<BookingDto> getAllOwnerBookings(long userId, State state) {
+    public Collection<BookingResponseDto> getAllOwnerBookings(long userId, State state) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException(
                         String.format("Пользователя по id = %s не существует", userId)));
@@ -127,12 +127,12 @@ public class BookingServiceImpl implements BookingService {
         log.info("Список бронирований для всех вещей текущего пользователя = {} с параметром state = {}: {}", userId,
                 state, bookings);
         return bookings.stream()
-                .map(mapper::convertToDto)
+                .map(mapper::convertToResponseDto)
                 .collect(Collectors.toList());
     }
 
     @Override
-    public BookingDto addNewBooking(long userId, BookingRequestDto bookingRequestDto) {
+    public BookingResponseDto addNewBooking(long userId, BookingRequestDto bookingRequestDto) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException(
                         String.format("Пользователя по id = %s не существует", userId)));
@@ -154,11 +154,11 @@ public class BookingServiceImpl implements BookingService {
         Booking booking = mapper.convertRequestDtoToEntity(bookingRequestDto);
         booking.setBooker(user);
         booking.setItem(item);
-        return mapper.convertToDto(bookingRepository.save(booking));
+        return mapper.convertToResponseDto(bookingRepository.save(booking));
     }
 
     @Override
-    public BookingDto approveBooking(long userId, long bookingId, Status status) {
+    public BookingResponseDto approveBooking(long userId, long bookingId, Status status) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException(
                         String.format("Пользователя по id = %s не существует", userId)));
@@ -177,6 +177,6 @@ public class BookingServiceImpl implements BookingService {
         }
 
         booking.setStatus(status);
-        return mapper.convertToDto(bookingRepository.save(booking));
+        return mapper.convertToResponseDto(bookingRepository.save(booking));
     }
 }

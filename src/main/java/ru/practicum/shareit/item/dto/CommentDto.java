@@ -1,14 +1,16 @@
 package ru.practicum.shareit.item.dto;
 
-import lombok.*;
+import lombok.Builder;
+import lombok.Value;
 
+import javax.validation.constraints.NotBlank;
 import java.time.Instant;
 
 @Value
 @Builder(toBuilder = true)
-@EqualsAndHashCode(of = "id")
 public class CommentDto {
     private final Long id;
+    @NotBlank
     private final String text;
     private final String authorName;
     private final Instant created;
