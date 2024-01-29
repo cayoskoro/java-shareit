@@ -8,9 +8,9 @@ import ru.practicum.shareit.item.model.Item;
 import java.util.Collection;
 
 public interface CommentRepository extends JpaRepository<Comment, Long> {
-    @Query("select c from Comment as c join fetch c.author as a join fetch c.item as i where i in ?1")
+    @Query("SELECT c FROM Comment AS c JOIN FETCH c.author AS a JOIN FETCH c.item AS i WHERE i IN ?1")
     public Collection<Comment> findAllByItemInEager(Collection<Item> items);
 
-    @Query("select c from Comment as c join fetch c.author as a join fetch c.item as i where i.id = ?1")
+    @Query("SELECT c FROM Comment AS c JOIN FETCH c.author AS a JOIN FETCH c.item AS i WHERE i.id = ?1")
     public Collection<Comment> findAllByItemIdEager(long items);
 }

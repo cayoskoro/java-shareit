@@ -3,6 +3,7 @@ package ru.practicum.shareit.item.service.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
@@ -29,6 +30,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Slf4j
 public class ItemServiceImpl implements ItemService {
@@ -53,14 +55,12 @@ public class ItemServiceImpl implements ItemService {
                 .map(item -> {
                     Booking lastBooking = bookings.stream()
                             .filter(it -> it.getItem().getId().equals(item.getId())
-                                    && it.getStatus().equals(Status.APPROVED)
-                                    && it.getStart().isBefore(LocalDateTime.now()))
+                                    && isPastApprovedBooking(it))
                             .max(Comparator.comparing(Booking::getStart))
                             .orElse(null);
                     Booking nextBooking = bookings.stream()
                             .filter(it -> it.getItem().getId().equals(item.getId())
-                                    && it.getStatus().equals(Status.APPROVED)
-                                    && it.getStart().isAfter(LocalDateTime.now()))
+                                    && isFutureApprovedBooking(it))
                             .min(Comparator.comparing(Booking::getStart))
                             .orElse(null);
                     Collection<Comment> comments = commentMap.getOrDefault(item.getId(), new ArrayList<>());
@@ -77,21 +77,18 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public ItemResponseDto getItemById(long userId, long itemId) {
-        Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new NotFoundException(String.format("Вещь по id = %s не существует", itemId)));
+        Item item = getItemByIdOrElseThrow(itemId);
         Collection<Booking> bookings = item.getOwner().getId() == userId
                 ? bookingRepository.findAllByItemOwnerId(userId) : new ArrayList<>();
         Map<Long, List<Comment>> commentMap = commentRepository.findAllByItemIdEager(itemId).stream()
                 .collect(Collectors.groupingBy(it -> it.getItem().getId()));
 
         Booking lastBooking = bookings.stream()
-                .filter(it -> it.getStatus().equals(Status.APPROVED)
-                        && it.getStart().isBefore(LocalDateTime.now()))
+                .filter(this::isPastApprovedBooking)
                 .max(Comparator.comparing(Booking::getStart))
                 .orElse(null);
         Booking nextBooking = bookings.stream()
-                .filter(it -> it.getStatus().equals(Status.APPROVED)
-                        && it.getStart().isAfter(LocalDateTime.now()))
+                .filter(this::isFutureApprovedBooking)
                 .min(Comparator.comparing(Booking::getStart))
                 .orElse(null);
         Collection<Comment> comments = commentMap.getOrDefault(item.getId(), new ArrayList<>());
@@ -105,10 +102,9 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Transactional
     public ItemResponseDto addNewItem(long userId, ItemRequestDto itemDto) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException(
-                        String.format("Пользователя по id = %s не существует", userId)));
+        User user = getUserByIdOrElseThrow(userId);
         Item item = itemMapper.convertRequestDtoToEntity(itemDto);
         item.setOwner(user);
 
@@ -117,10 +113,10 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Transactional
     public ItemResponseDto editItem(long userId, long itemId, ItemRequestDto itemDto) {
         checkIfUserExists(userId);
-        Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new NotFoundException(String.format("Вещь по id = %s не существует", itemId)));
+        Item item = getItemByIdOrElseThrow(itemId);
         Item updatingItem = itemMapper.clone(item);
         itemMapper.updateItemFromItemRequestDto(itemDto, updatingItem);
         log.info("Вещь подготовленная к обновлению - {}", updatingItem);
@@ -149,12 +145,10 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
+    @Transactional
     public CommentDto addNewComment(long userId, long itemId, CommentDto commentDto) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException(
-                        String.format("Пользователя по id = %s не существует", userId)));
-        Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new NotFoundException(String.format("Вещь по id = %s не существует", itemId)));
+        User user = getUserByIdOrElseThrow(userId);
+        Item item = getItemByIdOrElseThrow(itemId);
         if (!bookingRepository.existsByBookerIdAndItemIdAndStatusAndEndIsBeforeOrderByEndDesc(userId, itemId,
                 Status.APPROVED, LocalDateTime.now())) {
             log.info("Добавление комментария к вещи по id = {} для пользователя по id = {} недоступно, так как " +
@@ -163,7 +157,6 @@ public class ItemServiceImpl implements ItemService {
                     "Добавление комментария к вещи по id = %s для пользователя по id = %s недоступно, так как " +
                             "отсутствует бронь", itemId, userId));
         }
-        ;
 
         Comment comment = commentMapper.convertToEntity(commentDto);
         comment.setAuthor(user);
@@ -175,5 +168,25 @@ public class ItemServiceImpl implements ItemService {
 
     private void checkIfUserExists(long userId) {
         userRepository.findById(userId);
+    }
+
+    private User getUserByIdOrElseThrow(long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(
+                        String.format("Пользователя по id = %s не существует", userId)));
+    }
+
+    private Item getItemByIdOrElseThrow(long itemId) {
+        return itemRepository.findById(itemId)
+                .orElseThrow(() -> new NotFoundException(
+                        String.format("Вещи по id = %s не существует", itemId)));
+    }
+
+    private boolean isPastApprovedBooking(Booking booking) {
+        return booking.getStatus().equals(Status.APPROVED) && booking.getStart().isBefore(LocalDateTime.now());
+    }
+
+    private boolean isFutureApprovedBooking(Booking booking) {
+        return booking.getStatus().equals(Status.APPROVED) && booking.getStart().isAfter(LocalDateTime.now());
     }
 }

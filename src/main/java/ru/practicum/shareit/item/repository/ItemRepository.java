@@ -9,10 +9,10 @@ import java.util.Collection;
 public interface ItemRepository extends JpaRepository<Item, Long> {
     public Collection<Item> findAllByOwnerIdOrderByIdAsc(long userId);
 
-    @Query("select it " +
-            "from Item as it " +
-            "where it.available is true " +
-            "and (upper(it.name) like concat('%', upper(?1), '%') " +
-            "or upper(it.description) like concat('%', upper(?1), '%'))")
+    @Query("SELECT it " +
+            "FROM Item AS it " +
+            "WHERE it.available IS TRUE " +
+            "AND (UPPER(it.name) LIKE CONCAT('%', UPPER(?1), '%') " +
+            "OR UPPER(it.description) LIKE CONCAT('%', UPPER(?1), '%'))")
     public Collection<Item> searchAvailableByNameOrDescriptionContainingIgnoreCase(String text);
 }

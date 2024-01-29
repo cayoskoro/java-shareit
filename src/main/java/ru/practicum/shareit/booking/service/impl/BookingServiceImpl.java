@@ -3,6 +3,7 @@ package ru.practicum.shareit.booking.service.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingRequestDto;
 import ru.practicum.shareit.booking.dto.BookingResponseDto;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
@@ -25,6 +26,7 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Slf4j
 public class BookingServiceImpl implements BookingService {
@@ -37,8 +39,7 @@ public class BookingServiceImpl implements BookingService {
     public BookingResponseDto getBookingById(long userId, long bookingId) {
         checkIfUserExists(userId);
 
-        Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new NotFoundException(String.format("Аренды по id = %s не существует", bookingId)));
+        Booking booking = getBookingByIdOrElseThrow(bookingId);
 
         if (booking.getBooker().getId() != userId && booking.getItem().getOwner().getId() != userId) {
             log.info("Пользователь по id = {} не является владельцом аренды и бронированной вещи - {}",
@@ -130,13 +131,10 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional
     public BookingResponseDto addNewBooking(long userId, BookingRequestDto bookingRequestDto) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException(
-                        String.format("Пользователя по id = %s не существует", userId)));
-        Item item = itemRepository.findById(bookingRequestDto.getItemId())
-                .orElseThrow(() -> new NotFoundException(
-                        String.format("Вещи по id = %s не существует", bookingRequestDto.getItemId())));
+        User user = getUserByIdOrElseThrow(userId);
+        Item item = getItemByIdOrElseThrow(bookingRequestDto.getItemId());
 
         if (item.getOwner().getId() == userId) {
             log.info("Пользователь по id = {} является владельцем вещи по id = {}", userId, item.getId());
@@ -156,12 +154,10 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
+    @Transactional
     public BookingResponseDto approveBooking(long userId, long bookingId, Status status) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException(
-                        String.format("Пользователя по id = %s не существует", userId)));
-        Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new NotFoundException(String.format("Аренды по id = %s не существует", bookingId)));
+        checkIfUserExists(userId);
+        Booking booking = getBookingByIdOrElseThrow(bookingId);
 
         if (booking.getItem().getOwner().getId() != userId) {
             log.info("Пользователь по id = {} не является владельцом аренды - {}", userId, booking);
@@ -182,6 +178,23 @@ public class BookingServiceImpl implements BookingService {
         userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException(
                         String.format("Пользователя по id = %s не существует", userId)));
+    }
+
+    private Booking getBookingByIdOrElseThrow(long bookingId) {
+        return bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new NotFoundException(String.format("Аренды по id = %s не существует", bookingId)));
+    }
+
+    private User getUserByIdOrElseThrow(long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(
+                        String.format("Пользователя по id = %s не существует", userId)));
+    }
+
+    private Item getItemByIdOrElseThrow(long itemId) {
+        return itemRepository.findById(itemId)
+                .orElseThrow(() -> new NotFoundException(
+                        String.format("Вещи по id = %s не существует", itemId)));
     }
 
     private State convertToStateOrElseThrow(String state) {

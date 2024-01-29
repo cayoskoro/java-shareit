@@ -29,7 +29,8 @@ public class BookingController {
     public BookingResponseDto approveBooking(@RequestHeader(HEADER_USER_ID) long userId,
                                              @PathVariable long bookingId,
                                              @RequestParam(name = "approved") boolean isApproved) {
-        return service.approveBooking(userId, bookingId, isApproved ? Status.APPROVED : Status.REJECTED);
+        Status status = isApproved ? Status.APPROVED : Status.REJECTED;
+        return service.approveBooking(userId, bookingId, status);
     }
 
     @GetMapping("/{bookingId}")
