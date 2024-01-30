@@ -3,7 +3,8 @@ package ru.practicum.shareit.user.service.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import ru.practicum.shareit.common.exception.ConflictException;
+import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.shareit.common.exception.NotFoundException;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
@@ -14,50 +15,56 @@ import java.util.Collection;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional(readOnly = true)
 @RequiredArgsConstructor
 @Slf4j
 public class UserServiceImpl implements UserService {
     private final UserMapper mapper;
-    private final UserRepository repository;
+    private final UserRepository userRepository;
 
     @Override
     public Collection<UserDto> getAll() {
-        return repository.findAll().stream()
+        return userRepository.findAll().stream()
                 .map(mapper::convertToDto)
                 .collect(Collectors.toList());
     }
 
     @Override
     public UserDto getById(long id) {
-        return mapper.convertToDto(repository.findById(id));
+        User user = getUserByIdOrElseThrow(id);
+        log.info("Запрос пользователя по id = {} - {}", id, user);
+        return mapper.convertToDto(user);
     }
 
     @Override
+    @Transactional
     public UserDto create(UserDto userDto) {
         User user = mapper.convertToEntity(userDto);
-        checkUniqueUserByEmail(user);
-        return mapper.convertToDto(repository.create(user));
+        log.info("Добавлен новый пользователь - {}", user);
+        return mapper.convertToDto(userRepository.save(user));
     }
 
     @Override
+    @Transactional
     public UserDto update(long userId, UserDto userDto) {
-        User updatingUser = mapper.clone(repository.findById(userId));
+        User user = getUserByIdOrElseThrow(userId);
+        User updatingUser = mapper.clone(user);
         mapper.updateUserFromDto(userDto, updatingUser);
         log.info("Пользователь подготовлен к обновлению - {}", updatingUser);
-        checkUniqueUserByEmail(updatingUser);
-        return mapper.convertToDto(repository.update(updatingUser));
+        return mapper.convertToDto(userRepository.save(updatingUser));
     }
 
     @Override
-    public UserDto delete(long id) {
-        return mapper.convertToDto(repository.delete(id));
+    @Transactional
+    public void delete(long id) {
+        User user = getUserByIdOrElseThrow(id);
+        userRepository.delete(user);
+        log.info("Удален пользователь - {}", user);
     }
 
-    private void checkUniqueUserByEmail(User user) {
-        User existingUserByEmail = repository.findByEmail(user.getEmail());
-        if (existingUserByEmail != null && existingUserByEmail.getId() != user.getId()) {
-            log.info("Данный email - {} уже существует", user.getEmail());
-            throw new ConflictException(String.format("Данный email - %s уже существует", user.getEmail()));
-        }
+    private User getUserByIdOrElseThrow(long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(
+                        String.format("Пользователя по id = %s не существует", userId)));
     }
 }

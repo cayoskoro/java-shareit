@@ -2,18 +2,19 @@ package ru.practicum.shareit.item.mapper;
 
 import org.mapstruct.*;
 import org.mapstruct.control.DeepClone;
-import ru.practicum.shareit.item.dto.ItemDto;
+import ru.practicum.shareit.item.dto.ItemRequestDto;
+import ru.practicum.shareit.item.dto.ItemResponseDto;
 import ru.practicum.shareit.item.model.Item;
 
 @Mapper(componentModel = "spring", mappingControl = DeepClone.class)
 public interface ItemMapper {
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
     @Mapping(target = "id", ignore = true)
-    void updateItemFromItemDto(ItemDto dto, @MappingTarget Item item);
+    void updateItemFromItemRequestDto(ItemRequestDto dto, @MappingTarget Item item);
 
-    Item convertToEntity(ItemDto dto);
+    Item convertRequestDtoToEntity(ItemRequestDto dto);
 
-    ItemDto convertToDto(Item entity);
+    ItemResponseDto convertToResponseDto(Item entity);
 
     Item clone(Item entity);
 }

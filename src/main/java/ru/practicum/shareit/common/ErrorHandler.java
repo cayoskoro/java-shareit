@@ -5,15 +5,12 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import ru.practicum.shareit.common.exception.ConflictException;
-import ru.practicum.shareit.common.exception.IncorrectParameterException;
-import ru.practicum.shareit.common.exception.NotFoundException;
+import ru.practicum.shareit.common.exception.*;
 import ru.practicum.shareit.common.model.ErrorResponse;
 
 
 @RestControllerAdvice
 public class ErrorHandler {
-
     @ExceptionHandler
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public ErrorResponse handleNotFoundException(final NotFoundException e) {
@@ -34,8 +31,20 @@ public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleNotAvailableException(final NotAvailableException e) {
+        return new ErrorResponse("Not Available", e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleValidException(final MethodArgumentNotValidException e) {
         return new ErrorResponse("Not Valid", e.getMessage());
+    }
+
+    @ExceptionHandler
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ErrorResponse handleUnsupportedStateException(final UnsupportedStateException e) {
+        return new ErrorResponse(e.getMessage(), e.getMessage());
     }
 
     @ExceptionHandler
