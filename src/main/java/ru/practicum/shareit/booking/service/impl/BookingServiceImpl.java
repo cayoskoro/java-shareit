@@ -2,6 +2,7 @@ package ru.practicum.shareit.booking.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.dto.BookingRequestDto;
@@ -53,32 +54,43 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public Collection<BookingResponseDto> getAllBookings(long userId, String stateStr) {
+    public Collection<BookingResponseDto> getAllBookings(long userId, String stateStr, int from, int size) {
+        if (from < 0) {
+            throw new IncorrectParameterException("Параметр from некорректен. Должен быть >= 0");
+        }
+        if (size < 1) {
+            throw new IncorrectParameterException("Параметр size некорректен. Должен быть >= 0");
+        }
         State state = convertToStateOrElseThrow(stateStr);
         checkIfUserExists(userId);
 
         Collection<Booking> bookings;
         LocalDateTime currentTime = LocalDateTime.now();
+        PageRequest page = PageRequest.of(from > 0 ? from / size : 0, size);
 
         switch (state) {
             case ALL:
-                bookings = bookingRepository.findAllByBookerIdOrderByStartDesc(userId);
+                bookings = bookingRepository.findAllByBookerIdOrderByStartDesc(userId, page).getContent();
                 break;
             case CURRENT:
                 bookings = bookingRepository.findAllByBookerIdAndStartBeforeAndEndAfterOrderByStartDesc(userId,
-                        currentTime, currentTime);
+                        currentTime, currentTime, page).getContent();
                 break;
             case PAST:
-                bookings = bookingRepository.findAllByBookerIdAndEndBeforeOrderByStartDesc(userId, currentTime);
+                bookings = bookingRepository.findAllByBookerIdAndEndBeforeOrderByStartDesc(userId, currentTime, page)
+                        .getContent();
                 break;
             case FUTURE:
-                bookings = bookingRepository.findAllByBookerIdAndStartAfterOrderByStartDesc(userId, currentTime);
+                bookings = bookingRepository.findAllByBookerIdAndStartAfterOrderByStartDesc(userId, currentTime, page)
+                        .getContent();
                 break;
             case WAITING:
-                bookings = bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, Status.WAITING);
+                bookings = bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, Status.WAITING, page)
+                        .getContent();
                 break;
             case REJECTED:
-                bookings = bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, Status.REJECTED);
+                bookings = bookingRepository.findAllByBookerIdAndStatusOrderByStartDesc(userId, Status.REJECTED, page)
+                        .getContent();
                 break;
             default:
                 throw new UnsupportedStateException("Unknown state: " + stateStr);
@@ -92,32 +104,43 @@ public class BookingServiceImpl implements BookingService {
     }
 
     @Override
-    public Collection<BookingResponseDto> getAllOwnerBookings(long userId, String stateStr) {
+    public Collection<BookingResponseDto> getAllOwnerBookings(long userId, String stateStr, int from, int size) {
+        if (from < 0) {
+            throw new IncorrectParameterException("Параметр from некорректен. Должен быть >= 0");
+        }
+        if (size < 1) {
+            throw new IncorrectParameterException("Параметр size некорректен. Должен быть >= 0");
+        }
         State state = convertToStateOrElseThrow(stateStr);
         checkIfUserExists(userId);
 
         Collection<Booking> bookings;
         LocalDateTime currentTime = LocalDateTime.now();
+        PageRequest page = PageRequest.of(from > 0 ? from / size : 0, size);
 
         switch (state) {
             case ALL:
-                bookings = bookingRepository.findAllByItemOwnerIdOrderByStartDesc(userId);
+                bookings = bookingRepository.findAllByItemOwnerIdOrderByStartDesc(userId, page).getContent();
                 break;
             case CURRENT:
                 bookings = bookingRepository.findAllByItemOwnerIdAndStartBeforeAndEndAfterOrderByStartDesc(userId,
-                        currentTime, currentTime);
+                        currentTime, currentTime, page).getContent();
                 break;
             case PAST:
-                bookings = bookingRepository.findAllByItemOwnerIdAndEndBeforeOrderByStartDesc(userId, currentTime);
+                bookings = bookingRepository.findAllByItemOwnerIdAndEndBeforeOrderByStartDesc(userId, currentTime,
+                        page).getContent();
                 break;
             case FUTURE:
-                bookings = bookingRepository.findAllByItemOwnerIdAndStartAfterOrderByStartDesc(userId, currentTime);
+                bookings = bookingRepository.findAllByItemOwnerIdAndStartAfterOrderByStartDesc(userId, currentTime,
+                        page).getContent();
                 break;
             case WAITING:
-                bookings = bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(userId, Status.WAITING);
+                bookings = bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(userId, Status.WAITING,
+                        page).getContent();
                 break;
             case REJECTED:
-                bookings = bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(userId, Status.REJECTED);
+                bookings = bookingRepository.findAllByItemOwnerIdAndStatusOrderByStartDesc(userId, Status.REJECTED,
+                        page).getContent();
                 break;
             default:
                 throw new UnsupportedStateException("Unknown state: " + stateStr);

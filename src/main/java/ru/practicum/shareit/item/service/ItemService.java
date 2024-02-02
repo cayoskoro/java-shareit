@@ -9,7 +9,7 @@ import java.util.Collection;
 
 @Transactional(readOnly = true)
 public interface ItemService {
-    public Collection<ItemResponseDto> getAllUserItems(long userId);
+    public Collection<ItemResponseDto> getAllUserItems(long userId, int from, int size);
 
     public ItemResponseDto getItemById(long userId, long itemId);
 
@@ -19,7 +19,7 @@ public interface ItemService {
     @Transactional
     public ItemResponseDto editItem(long userId, long itemId, ItemRequestDto itemDto);
 
-    public Collection<ItemResponseDto> searchItems(String text);
+    public Collection<ItemResponseDto> searchItems(String text, int from, int size);
 
     @Transactional
     public CommentDto addNewComment(long userId, long itemId, CommentDto commentDto);

@@ -11,9 +11,9 @@ import java.util.Collection;
 public interface BookingService {
     public BookingResponseDto getBookingById(long userId, long bookingId);
 
-    public Collection<BookingResponseDto> getAllBookings(long userId, String stateStr);
+    public Collection<BookingResponseDto> getAllBookings(long userId, String stateStr, int from, int size);
 
-    public Collection<BookingResponseDto> getAllOwnerBookings(long userId, String stateStr);
+    public Collection<BookingResponseDto> getAllOwnerBookings(long userId, String stateStr, int from, int size);
 
     @Transactional
     public BookingResponseDto addNewBooking(long userId, BookingRequestDto bookingRequestDto);
