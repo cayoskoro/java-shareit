@@ -7,6 +7,9 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.common.exception.NotFoundException;
+import ru.practicum.shareit.item.mapper.ItemMapper;
+import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.mapper.ItemRequestMapper;
 import ru.practicum.shareit.request.model.ItemRequest;
@@ -15,7 +18,10 @@ import ru.practicum.shareit.request.service.ItemRequestService;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Transactional(readOnly = true)
@@ -24,8 +30,10 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ItemRequestServiceImpl implements ItemRequestService {
     private final ItemRequestMapper itemRequestMapper;
+    private final ItemMapper itemMapper;
     private final ItemRequestRepository itemRequestRepository;
     private final UserRepository userRepository;
+    private final ItemRepository itemRepository;
 
     @Override
     @Transactional
@@ -39,24 +47,48 @@ public class ItemRequestServiceImpl implements ItemRequestService {
     @Override
     public Collection<ItemRequestDto> getOwnerItemRequests(long userId) {
         checkIfUserExists(userId);
-        return itemRequestRepository.findAllByRequestorIdOrderByCreatedDesc(userId).stream()
-                .map(itemRequestMapper::convertToDto)
+        Collection<ItemRequest> itemRequests = itemRequestRepository.findAllByRequestorIdOrderByCreatedDesc(userId);
+        Map<Long, List<Item>> itemMap = itemRepository.findAllByRequestIn(itemRequests).stream()
+                .collect(Collectors.groupingBy(it -> it.getRequest().getId()));
+        return itemRequests.stream()
+                .map(itemRequest -> {
+                    Collection<Item> items = itemMap.getOrDefault(itemRequest.getId(), new ArrayList<>());
+                    return itemRequestMapper.convertToDto(itemRequest).toBuilder()
+                            .items(items.stream()
+                                    .map(itemMapper::convertToResponseDto)
+                                    .collect(Collectors.toList())).build();
+                })
                 .collect(Collectors.toList());
     }
 
     @Override
     public Collection<ItemRequestDto> getAllItemRequests(long userId, int from, int size) {
         PageRequest page = PageRequest.of(from > 0 ? from / size : 0, size, Sort.by("created").descending());
-        return itemRequestRepository.findAllByRequestorIdOrderByCreatedDesc(userId, page)
-                .map(itemRequestMapper::convertToDto)
-                .getContent();
+        Collection<ItemRequest> itemRequests = itemRequestRepository
+                .findAllByRequestorIdNotOrderByCreatedDesc(userId, page).getContent();
+        Map<Long, List<Item>> itemMap = itemRepository.findAllByRequestIn(itemRequests).stream()
+                .collect(Collectors.groupingBy(it -> it.getRequest().getId()));
+        return itemRequests.stream()
+                .map(itemRequest -> {
+                    Collection<Item> items = itemMap.getOrDefault(itemRequest.getId(), new ArrayList<>());
+                    return itemRequestMapper.convertToDto(itemRequest).toBuilder()
+                            .items(items.stream()
+                                    .map(itemMapper::convertToResponseDto)
+                                    .collect(Collectors.toList())).build();
+                })
+                .collect(Collectors.toList());
     }
 
     @Override
     public ItemRequestDto getItemRequest(long userId, long requestId) {
         checkIfUserExists(userId);
         ItemRequest itemRequest = getItemRequestByIdOrElseThrow(requestId);
-        return itemRequestMapper.convertToDto(itemRequest);
+        Collection<Item> items = itemRepository.findAllByRequestId(requestId);
+        return itemRequestMapper.convertToDto(itemRequest).toBuilder()
+                .items(items.stream()
+                        .map(itemMapper::convertToResponseDto)
+                        .collect(Collectors.toList()))
+                .build();
     }
 
     private void checkIfUserExists(long userId) {

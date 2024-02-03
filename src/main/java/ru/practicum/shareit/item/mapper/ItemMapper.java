@@ -14,6 +14,7 @@ public interface ItemMapper {
 
     Item convertRequestDtoToEntity(ItemRequestDto dto);
 
+    @Mapping(target = "requestId", source = "entity.request.id")
     ItemResponseDto convertToResponseDto(Item entity);
 
     Item clone(Item entity);

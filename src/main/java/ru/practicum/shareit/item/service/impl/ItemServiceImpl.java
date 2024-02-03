@@ -23,6 +23,8 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.item.service.ItemService;
+import ru.practicum.shareit.request.model.ItemRequest;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -42,6 +44,7 @@ public class ItemServiceImpl implements ItemService {
     private final UserRepository userRepository;
     private final CommentRepository commentRepository;
     private final BookingRepository bookingRepository;
+    private final ItemRequestRepository itemRequestRepository;
 
     @Override
     public Collection<ItemResponseDto> getAllUserItems(long userId, int from, int size) {
@@ -107,8 +110,21 @@ public class ItemServiceImpl implements ItemService {
     @Transactional
     public ItemResponseDto addNewItem(long userId, ItemRequestDto itemDto) {
         User user = getUserByIdOrElseThrow(userId);
+        ItemRequest itemRequest = null;
+        if (itemDto.getRequestId() != null) {
+            itemRequest = itemRequestRepository.findById(itemDto.getRequestId())
+                    .orElseThrow(() -> new NotFoundException(
+                            String.format("Запроса вещи по id = %s не существует", itemDto.getRequestId())));
+            if (itemRequest.getRequestor().getId() == userId) {
+                throw new NotAvailableException(
+                        String.format("Пользователь по id = %d не может добавить вещь на запрос вещи по id = %d, " +
+                                "так как является создателем этого запроса", userId, itemRequest.getId()));
+            }
+        }
+
         Item item = itemMapper.convertRequestDtoToEntity(itemDto);
         item.setOwner(user);
+        item.setRequest(itemRequest);
 
         log.info("Добавлена вещь - {}", item);
         return itemMapper.convertToResponseDto(itemRepository.save(item));

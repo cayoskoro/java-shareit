@@ -12,5 +12,5 @@ public interface CommentRepository extends JpaRepository<Comment, Long> {
     public Collection<Comment> findAllByItemInEager(Collection<Item> items);
 
     @Query("SELECT c FROM Comment AS c JOIN FETCH c.author AS a JOIN FETCH c.item AS i WHERE i.id = ?1")
-    public Collection<Comment> findAllByItemIdEager(long items);
+    public Collection<Comment> findAllByItemIdEager(long itemId);
 }

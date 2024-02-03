@@ -5,6 +5,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.request.model.ItemRequest;
+
+import java.util.Collection;
 
 public interface ItemRepository extends JpaRepository<Item, Long> {
     public Page<Item> findAllByOwnerIdOrderByIdAsc(long userId, Pageable page);
@@ -15,4 +18,8 @@ public interface ItemRepository extends JpaRepository<Item, Long> {
             "AND (UPPER(it.name) LIKE CONCAT('%', UPPER(?1), '%') " +
             "OR UPPER(it.description) LIKE CONCAT('%', UPPER(?1), '%'))")
     public Page<Item> searchAvailableByNameOrDescriptionContainingIgnoreCase(String text, Pageable page);
+
+    public Collection<Item> findAllByRequestIn(Collection<ItemRequest> itemRequests);
+
+    public Collection<Item> findAllByRequestId(long requestId);
 }
