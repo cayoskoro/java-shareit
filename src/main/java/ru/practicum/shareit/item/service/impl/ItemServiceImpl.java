@@ -3,7 +3,6 @@ package ru.practicum.shareit.item.service.impl;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
@@ -47,12 +46,6 @@ public class ItemServiceImpl implements ItemService {
     @Override
     public Collection<ItemResponseDto> getAllUserItems(long userId, int from, int size) {
         checkIfUserExists(userId);
-        if (from < 0) {
-            throw new IncorrectParameterException("Параметр from некорректен. Должен быть >= 0");
-        }
-        if (size < 1) {
-            throw new IncorrectParameterException("Параметр size некорректен. Должен быть >= 0");
-        }
         PageRequest page = PageRequest.of(from > 0 ? from / size : 0, size);
 
         Collection<Item> items = itemRepository.findAllByOwnerIdOrderByIdAsc(userId, page).getContent();
@@ -141,12 +134,6 @@ public class ItemServiceImpl implements ItemService {
 
     @Override
     public Collection<ItemResponseDto> searchItems(String text, int from, int size) {
-        if (from < 0) {
-            throw new IncorrectParameterException("Параметр from некорректен. Должен быть >= 0");
-        }
-        if (size < 1) {
-            throw new IncorrectParameterException("Параметр size некорректен. Должен быть >= 0");
-        }
         if (text.isEmpty()) {
             return Collections.emptyList();
         } else if (!Constants.getAlphaNumericPattern().matcher(text).matches()) {

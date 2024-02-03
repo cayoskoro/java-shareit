@@ -6,7 +6,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import ru.practicum.shareit.common.exception.IncorrectParameterException;
 import ru.practicum.shareit.common.exception.NotFoundException;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.mapper.ItemRequestMapper;
@@ -47,12 +46,6 @@ public class ItemRequestServiceImpl implements ItemRequestService {
 
     @Override
     public Collection<ItemRequestDto> getAllItemRequests(long userId, int from, int size) {
-        if (from < 0) {
-            throw new IncorrectParameterException("Параметр from некорректен. Должен быть >= 0");
-        }
-        if (size < 1) {
-            throw new IncorrectParameterException("Параметр from некорректен. Должен быть >= 0");
-        }
         PageRequest page = PageRequest.of(from > 0 ? from / size : 0, size, Sort.by("created").descending());
         return itemRequestRepository.findAllByRequestorIdOrderByCreatedDesc(userId, page)
                 .map(itemRequestMapper::convertToDto)

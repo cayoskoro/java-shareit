@@ -2,6 +2,7 @@ package ru.practicum.shareit.item.controller;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemRequestDto;
@@ -9,20 +10,23 @@ import ru.practicum.shareit.item.dto.ItemResponseDto;
 import ru.practicum.shareit.item.service.ItemService;
 
 import javax.validation.Valid;
+import javax.validation.constraints.Positive;
+import javax.validation.constraints.PositiveOrZero;
 import java.util.Collection;
 
 @RestController
 @RequestMapping("/items")
 @RequiredArgsConstructor
 @Slf4j
+@Validated
 public class ItemController {
     private final ItemService service;
     private static final String HEADER_USER_ID = "X-Sharer-User-Id";
 
     @GetMapping
     public Collection<ItemResponseDto> getAllUserItems(@RequestHeader(HEADER_USER_ID) long userId,
-                                                       @RequestParam(defaultValue = "0") int from,
-                                                       @RequestParam(defaultValue = "10") int size) {
+                                                       @RequestParam(defaultValue = "0") @PositiveOrZero int from,
+                                                       @RequestParam(defaultValue = "10") @Positive int size) {
         return service.getAllUserItems(userId, from, size);
     }
 
@@ -46,8 +50,8 @@ public class ItemController {
     @GetMapping("/search")
     public Collection<ItemResponseDto> searchItems(@RequestHeader(HEADER_USER_ID) long userId,
                                                    @RequestParam String text,
-                                                   @RequestParam(defaultValue = "0") int from,
-                                                   @RequestParam(defaultValue = "10") int size) {
+                                                   @RequestParam(defaultValue = "0") @PositiveOrZero int from,
+                                                   @RequestParam(defaultValue = "10") @Positive int size) {
         return service.searchItems(text, from, size);
     }
 

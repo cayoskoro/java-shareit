@@ -5,7 +5,6 @@ import lombok.Value;
 import ru.practicum.shareit.item.model.Item;
 
 import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.Collection;
 

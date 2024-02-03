@@ -55,12 +55,6 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public Collection<BookingResponseDto> getAllBookings(long userId, String stateStr, int from, int size) {
-        if (from < 0) {
-            throw new IncorrectParameterException("Параметр from некорректен. Должен быть >= 0");
-        }
-        if (size < 1) {
-            throw new IncorrectParameterException("Параметр size некорректен. Должен быть >= 0");
-        }
         State state = convertToStateOrElseThrow(stateStr);
         checkIfUserExists(userId);
 
@@ -105,12 +99,6 @@ public class BookingServiceImpl implements BookingService {
 
     @Override
     public Collection<BookingResponseDto> getAllOwnerBookings(long userId, String stateStr, int from, int size) {
-        if (from < 0) {
-            throw new IncorrectParameterException("Параметр from некорректен. Должен быть >= 0");
-        }
-        if (size < 1) {
-            throw new IncorrectParameterException("Параметр size некорректен. Должен быть >= 0");
-        }
         State state = convertToStateOrElseThrow(stateStr);
         checkIfUserExists(userId);
 
