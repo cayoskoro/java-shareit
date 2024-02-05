@@ -60,7 +60,7 @@ class BookingServiceTest {
         itemRequest1 = ItemRequest.builder()
                 .description("request1")
                 .requestor(user1)
-                .created(LocalDateTime.now())
+                .created(LocalDateTime.now().withNano(0))
                 .build();
 
         item1 = Item.builder()
@@ -74,22 +74,22 @@ class BookingServiceTest {
 
         booking1 = new Booking();
         booking1.setId(1L);
-        booking1.setStart(LocalDateTime.now().plusMonths(1));
-        booking1.setEnd(LocalDateTime.now().plusMonths(2));
+        booking1.setStart(LocalDateTime.now().plusMonths(1).withNano(0));
+        booking1.setEnd(LocalDateTime.now().plusMonths(2).withNano(0));
         booking1.setItem(item1);
         booking1.setBooker(user1);
         booking1.setStatus(Status.APPROVED);
 
         bookingRequestDto1 = BookingRequestDto.builder()
                 .itemId(1L)
-                .start(LocalDateTime.now().plusMonths(1))
-                .end(LocalDateTime.now().plusMonths(2))
+                .start(LocalDateTime.now().plusMonths(1).withNano(0))
+                .end(LocalDateTime.now().plusMonths(2).withNano(0))
                 .build();
 
         bookingResponseDto1 = BookingResponseDto.builder()
                 .id(1L)
-                .start(LocalDateTime.now().plusMonths(1))
-                .end(LocalDateTime.now().plusMonths(2))
+                .start(LocalDateTime.now().plusMonths(1).withNano(0))
+                .end(LocalDateTime.now().plusMonths(2).withNano(0))
                 .item(item1)
                 .booker(user1)
                 .status(Status.APPROVED)
