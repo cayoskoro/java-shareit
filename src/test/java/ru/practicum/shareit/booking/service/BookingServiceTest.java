@@ -118,7 +118,7 @@ class BookingServiceTest {
     void shouldGetAllBookingsWithStatusALL() {
         Mockito.when(userRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(user1));
         Mockito.when(bookingRepository
-                .findAllByBookerIdOrderByStartDesc(Mockito.anyLong(), Mockito.any(PageRequest.class)))
+                        .findAllByBookerIdOrderByStartDesc(Mockito.anyLong(), Mockito.any(PageRequest.class)))
                 .thenReturn(new PageImpl<>(List.of(booking1)));
 
         Collection<BookingResponseDto> bookingResponseDtos = bookingService.getAllBookings(user1.getId(),
