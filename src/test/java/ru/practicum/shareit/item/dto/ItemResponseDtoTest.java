@@ -1,4 +1,4 @@
-package ru.practicum.shareit.request.dto;
+package ru.practicum.shareit.item.dto;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -8,8 +8,6 @@ import org.springframework.boot.test.autoconfigure.json.JsonTest;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.boot.test.json.JsonContent;
 import ru.practicum.shareit.booking.dto.BookingResponseShortDto;
-import ru.practicum.shareit.item.dto.CommentDto;
-import ru.practicum.shareit.item.dto.ItemResponseDto;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -20,11 +18,11 @@ import static org.junit.jupiter.api.Assertions.*;
 @JsonTest
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @Slf4j
-class ItemRequestDtoTest {
-    private final JacksonTester<ItemRequestDto> json;
+class ItemResponseDtoTest {
+    private final JacksonTester<ItemResponseDto> json;
 
     @Test
-    void shouldGetItemRequestDtoTest() throws Exception {
+    void shouldGetItemResponseDtoTest() throws Exception {
         BookingResponseShortDto bookingResponseShortDto1 = BookingResponseShortDto.builder()
                 .id(1L)
                 .bookerId(1L)
@@ -60,49 +58,36 @@ class ItemRequestDtoTest {
                 .requestId(1L)
                 .build();
 
-        ItemRequestDto itemRequestDto = ItemRequestDto.builder()
-                .id(1L)
-                .description("itemRequest1")
-                .created(LocalDateTime.now())
-                .items(List.of(itemResponseDto))
-                .build();
-
-        log.info("itemRequestDto = {}", itemRequestDto);
-        JsonContent<ItemRequestDto> result = json.write(itemRequestDto);
-
+        log.info("itemResponseDto = {}", itemResponseDto);
+        JsonContent<ItemResponseDto> result = json.write(itemResponseDto);
         assertThat(result).extractingJsonPathNumberValue("$.id").isEqualTo(
-                itemRequestDto.getId().intValue());
-        assertThat(result).extractingJsonPathStringValue("$.description").isEqualTo(
-                itemRequestDto.getDescription());
-        assertThat(result).extractingJsonPathNumberValue("$.items[0].id").isEqualTo(
                 itemResponseDto.getId().intValue());
-        assertThat(result).extractingJsonPathStringValue("$.items[0].name").isEqualTo(
-                itemResponseDto.getName());
-        assertThat(result).extractingJsonPathStringValue("$.items[0].description").isEqualTo(
+        assertThat(result).extractingJsonPathStringValue("$.name").isEqualTo(itemResponseDto.getName());
+        assertThat(result).extractingJsonPathStringValue("$.description").isEqualTo(
                 itemResponseDto.getDescription());
-        assertThat(result).extractingJsonPathBooleanValue("$.items[0].available").isEqualTo(
+        assertThat(result).extractingJsonPathBooleanValue("$.available").isEqualTo(
                 itemResponseDto.getAvailable());
-        assertThat(result).extractingJsonPathNumberValue("$.items[0].lastBooking.id").isEqualTo(
+        assertThat(result).extractingJsonPathNumberValue("$.lastBooking.id").isEqualTo(
                 itemResponseDto.getLastBooking().getId().intValue());
-        assertThat(result).extractingJsonPathNumberValue("$.items[0].lastBooking.bookerId").isEqualTo(
+        assertThat(result).extractingJsonPathNumberValue("$.lastBooking.bookerId").isEqualTo(
                 itemResponseDto.getLastBooking().getBookerId().intValue());
-        assertThat(result).extractingJsonPathNumberValue("$.items[0].nextBooking.id").isEqualTo(
+        assertThat(result).extractingJsonPathNumberValue("$.nextBooking.id").isEqualTo(
                 itemResponseDto.getNextBooking().getId().intValue());
-        assertThat(result).extractingJsonPathNumberValue("$.items[0].nextBooking.bookerId").isEqualTo(
+        assertThat(result).extractingJsonPathNumberValue("$.nextBooking.bookerId").isEqualTo(
                 itemResponseDto.getNextBooking().getBookerId().intValue());
-        assertThat(result).extractingJsonPathNumberValue("$.items[0].comments[0].id").isEqualTo(
+        assertThat(result).extractingJsonPathNumberValue("$.comments[0].id").isEqualTo(
                 commentDto1.getId().intValue());
-        assertThat(result).extractingJsonPathStringValue("$.items[0].comments[0].text").isEqualTo(
+        assertThat(result).extractingJsonPathStringValue("$.comments[0].text").isEqualTo(
                 commentDto1.getText());
-        assertThat(result).extractingJsonPathStringValue("$.items[0].comments[0].authorName").isEqualTo(
+        assertThat(result).extractingJsonPathStringValue("$.comments[0].authorName").isEqualTo(
                 commentDto1.getAuthorName());
-        assertThat(result).extractingJsonPathNumberValue("$.items[0].comments[1].id").isEqualTo(
+        assertThat(result).extractingJsonPathNumberValue("$.comments[1].id").isEqualTo(
                 commentDto2.getId().intValue());
-        assertThat(result).extractingJsonPathStringValue("$.items[0].comments[1].text").isEqualTo(
+        assertThat(result).extractingJsonPathStringValue("$.comments[1].text").isEqualTo(
                 commentDto2.getText());
-        assertThat(result).extractingJsonPathStringValue("$.items[0].comments[1].authorName").isEqualTo(
+        assertThat(result).extractingJsonPathStringValue("$.comments[1].authorName").isEqualTo(
                 commentDto2.getAuthorName());
-        assertThat(result).extractingJsonPathNumberValue("$.items[0].requestId").isEqualTo(
+        assertThat(result).extractingJsonPathNumberValue("$.requestId").isEqualTo(
                 itemResponseDto.getRequestId().intValue());
     }
 }
