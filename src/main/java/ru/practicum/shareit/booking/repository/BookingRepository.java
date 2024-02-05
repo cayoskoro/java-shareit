@@ -12,8 +12,6 @@ import java.util.Collection;
 
 public interface BookingRepository extends JpaRepository<Booking, Long> {
 
-    public Page<Booking> findAllByBookerId(long userId, Pageable page);
-
     public Page<Booking> findAllByBookerIdOrderByStartDesc(long userId, Pageable page);
 
     public Page<Booking> findAllByBookerIdAndStartBeforeAndEndAfterOrderByStartDesc(long userId,
