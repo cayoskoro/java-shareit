@@ -73,9 +73,7 @@ public class ItemServiceImpl implements ItemService {
                     return itemMapper.convertToResponseDto(item).toBuilder()
                             .lastBooking(bookingMapper.convertToResponseShortDto(lastBooking))
                             .nextBooking(bookingMapper.convertToResponseShortDto(nextBooking))
-                            .comments(comments.stream()
-                                    .map(commentMapper::convertToDto)
-                                    .collect(Collectors.toList())).build();
+                            .comments(commentMapper.convertToDtoCollection(comments)).build();
                 })
                 .collect(Collectors.toList());
     }
@@ -101,9 +99,7 @@ public class ItemServiceImpl implements ItemService {
         return itemMapper.convertToResponseDto(item).toBuilder()
                 .lastBooking(bookingMapper.convertToResponseShortDto(lastBooking))
                 .nextBooking(bookingMapper.convertToResponseShortDto(nextBooking))
-                .comments(comments.stream()
-                        .map(commentMapper::convertToDto)
-                        .collect(Collectors.toList())).build();
+                .comments(commentMapper.convertToDtoCollection(comments)).build();
     }
 
     @Override
@@ -158,9 +154,8 @@ public class ItemServiceImpl implements ItemService {
         }
         log.info("Осуществляется поиск по подстроке - {}", text);
         PageRequest page = PageRequest.of(from > 0 ? from / size : 0, size);
-        return itemRepository.searchAvailableByNameOrDescriptionContainingIgnoreCase(text, page).stream()
-                .map(itemMapper::convertToResponseDto)
-                .collect(Collectors.toList());
+        return itemMapper.convertToResponseDtoCollection(
+                itemRepository.searchAvailableByNameOrDescriptionContainingIgnoreCase(text, page).getContent());
     }
 
     @Override

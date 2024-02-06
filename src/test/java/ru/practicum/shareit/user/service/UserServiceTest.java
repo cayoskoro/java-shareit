@@ -13,6 +13,7 @@ import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -35,6 +36,8 @@ class UserServiceTest extends UserBaseTest {
         Mockito.when(userMapper.convertToEntity(Mockito.any(UserDto.class))).thenReturn(user1);
         Mockito.when(userMapper.convertToDto(Mockito.any(User.class))).thenReturn(userDto1);
         Mockito.when(userMapper.clone(Mockito.any(User.class))).thenReturn(user1);
+        Mockito.when(userMapper.convertToDtoCollection(Mockito.anyCollection()))
+                .thenReturn(Collections.singletonList(userDto1));
     }
 
     @Test

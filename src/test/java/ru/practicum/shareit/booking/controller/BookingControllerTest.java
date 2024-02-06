@@ -11,18 +11,13 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.booking.BookingBaseTest;
-import ru.practicum.shareit.booking.dto.BookingRequestDto;
-import ru.practicum.shareit.booking.dto.BookingResponseDto;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.service.BookingService;
 import ru.practicum.shareit.common.exception.IncorrectParameterException;
 import ru.practicum.shareit.common.exception.NotAvailableException;
 import ru.practicum.shareit.common.exception.NotFoundException;
 import ru.practicum.shareit.common.exception.UnsupportedStateException;
-import ru.practicum.shareit.item.model.Item;
-import ru.practicum.shareit.user.model.User;
 
-import java.time.LocalDateTime;
 import java.util.Collections;
 
 import static org.hamcrest.core.Is.is;

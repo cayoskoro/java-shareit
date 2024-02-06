@@ -9,8 +9,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import ru.practicum.shareit.booking.dto.BookingRequestDto;
-import ru.practicum.shareit.booking.dto.BookingResponseDto;
-import ru.practicum.shareit.booking.dto.BookingResponseShortDto;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
@@ -27,13 +25,12 @@ import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
-import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.request.repository.ItemRequestRepository;
-import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -66,11 +63,15 @@ class ItemServiceTest extends ItemBaseTest {
 
         Mockito.when(commentMapper.convertToEntity(Mockito.any(CommentDto.class))).thenReturn(comment1);
         Mockito.when(commentMapper.convertToDto(Mockito.any(Comment.class))).thenReturn(commentDto1);
+        Mockito.when(commentMapper.convertToDtoCollection(Mockito.anyCollection()))
+                .thenReturn(Collections.singletonList(commentDto1));
 
         Mockito.when(itemMapper.convertRequestDtoToEntity(
                 Mockito.any(ru.practicum.shareit.item.dto.ItemRequestDto.class))).thenReturn(item1);
         Mockito.when(itemMapper.convertToResponseDto(Mockito.any(Item.class))).thenReturn(itemResponseDto1);
         Mockito.when(itemMapper.clone(Mockito.any(Item.class))).thenReturn(item1);
+        Mockito.when(itemMapper.convertToResponseDtoCollection(Mockito.anyCollection()))
+                .thenReturn(Collections.singletonList(itemResponseDto1));
 
         Mockito.when(bookingMapper.convertToResponseDto(Mockito.any(Booking.class)))
                 .thenReturn(bookingResponseDto1);
@@ -78,6 +79,8 @@ class ItemServiceTest extends ItemBaseTest {
                 .thenReturn(bookingResponseShortDto1);
         Mockito.when(bookingMapper.convertRequestDtoToEntity(Mockito.any(BookingRequestDto.class)))
                 .thenReturn(booking1);
+        Mockito.when(bookingMapper.convertToResponseDtoCollection(Mockito.anyCollection()))
+                .thenReturn(Collections.singletonList(bookingResponseDto1));
     }
 
     @Test

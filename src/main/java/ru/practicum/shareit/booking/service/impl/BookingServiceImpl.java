@@ -24,7 +24,6 @@ import ru.practicum.shareit.user.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -92,9 +91,7 @@ public class BookingServiceImpl implements BookingService {
 
         log.info("Список всех бронирований текущего пользователя = {} с параметром state = {}: {}", userId,
                 state, bookings);
-        return bookings.stream()
-                .map(mapper::convertToResponseDto)
-                .collect(Collectors.toList());
+        return mapper.convertToResponseDtoCollection(bookings);
     }
 
     @Override
@@ -136,9 +133,7 @@ public class BookingServiceImpl implements BookingService {
 
         log.info("Список бронирований для всех вещей текущего пользователя = {} с параметром state = {}: {}", userId,
                 state, bookings);
-        return bookings.stream()
-                .map(mapper::convertToResponseDto)
-                .collect(Collectors.toList());
+        return mapper.convertToResponseDtoCollection(bookings);
     }
 
     @Override

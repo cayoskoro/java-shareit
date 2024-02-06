@@ -54,9 +54,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
                 .map(itemRequest -> {
                     Collection<Item> items = itemMap.getOrDefault(itemRequest.getId(), new ArrayList<>());
                     return itemRequestMapper.convertToDto(itemRequest).toBuilder()
-                            .items(items.stream()
-                                    .map(itemMapper::convertToResponseDto)
-                                    .collect(Collectors.toList())).build();
+                            .items(itemMapper.convertToResponseDtoCollection(items)).build();
                 })
                 .collect(Collectors.toList());
     }
@@ -72,9 +70,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
                 .map(itemRequest -> {
                     Collection<Item> items = itemMap.getOrDefault(itemRequest.getId(), new ArrayList<>());
                     return itemRequestMapper.convertToDto(itemRequest).toBuilder()
-                            .items(items.stream()
-                                    .map(itemMapper::convertToResponseDto)
-                                    .collect(Collectors.toList())).build();
+                            .items(itemMapper.convertToResponseDtoCollection(items)).build();
                 })
                 .collect(Collectors.toList());
     }
@@ -85,9 +81,7 @@ public class ItemRequestServiceImpl implements ItemRequestService {
         ItemRequest itemRequest = getItemRequestByIdOrElseThrow(requestId);
         Collection<Item> items = itemRepository.findAllByRequestId(requestId);
         return itemRequestMapper.convertToDto(itemRequest).toBuilder()
-                .items(items.stream()
-                        .map(itemMapper::convertToResponseDto)
-                        .collect(Collectors.toList()))
+                .items(itemMapper.convertToResponseDtoCollection(items))
                 .build();
     }
 

@@ -9,7 +9,6 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
-import ru.practicum.shareit.item.dto.ItemResponseDto;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
@@ -18,11 +17,10 @@ import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.mapper.ItemRequestMapper;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.request.repository.ItemRequestRepository;
-import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
-import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -51,9 +49,12 @@ class ItemRequestServiceTest extends ItemRequestBaseTest {
 
         Mockito.when(itemRequestMapper.convertToEntity(Mockito.any(ItemRequestDto.class))).thenReturn(itemRequest1);
         Mockito.when(itemRequestMapper.convertToDto(Mockito.any(ItemRequest.class))).thenReturn(itemRequestDto1);
+
         Mockito.when(itemMapper.convertRequestDtoToEntity(Mockito
                 .any(ru.practicum.shareit.item.dto.ItemRequestDto.class))).thenReturn(item1);
         Mockito.when(itemMapper.convertToResponseDto(Mockito.any(Item.class))).thenReturn(itemResponseDto1);
+        Mockito.when(itemMapper.convertToResponseDtoCollection(Mockito.anyCollection()))
+                .thenReturn(Collections.singletonList(itemResponseDto1));
     }
 
     @Test
