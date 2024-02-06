@@ -6,6 +6,7 @@ import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import ru.practicum.shareit.user.UserBaseTest;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.mapper.UserMapper;
 import ru.practicum.shareit.user.model.User;
@@ -19,27 +20,17 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest(properties = {"db.name=test"})
-class UserServiceTest {
+class UserServiceTest extends UserBaseTest {
     @Autowired
     private UserService userService;
     @MockBean
     private UserMapper userMapper;
     @MockBean
     private UserRepository userRepository;
-    private User user1;
-    private UserDto userDto1;
 
     @BeforeEach
-    void setUp() {
-        user1 = User.builder()
-                .id(1L)
-                .name("user1")
-                .email("user1@ya.ru")
-                .build();
-        userDto1 = UserDto.builder()
-                .name(user1.getName())
-                .email(user1.getEmail())
-                .build();
+    protected void setUp() {
+        super.setUp();
 
         Mockito.when(userMapper.convertToEntity(Mockito.any(UserDto.class))).thenReturn(user1);
         Mockito.when(userMapper.convertToDto(Mockito.any(User.class))).thenReturn(userDto1);

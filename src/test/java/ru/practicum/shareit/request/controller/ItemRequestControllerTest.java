@@ -13,6 +13,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import ru.practicum.shareit.booking.dto.BookingResponseShortDto;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemResponseDto;
+import ru.practicum.shareit.request.ItemRequestBaseTest;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.service.ItemRequestService;
 
@@ -28,7 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(controllers = ItemRequestController.class)
 @TestPropertySource(properties = "db.name=test")
-class ItemRequestControllerTest {
+class ItemRequestControllerTest extends ItemRequestBaseTest {
     @Autowired
     private ObjectMapper mapper;
     @MockBean
@@ -36,66 +37,9 @@ class ItemRequestControllerTest {
     @Autowired
     private MockMvc mvc;
 
-    private ItemResponseDto itemResponseDto1;
-    private ItemResponseDto itemResponseDto2;
-    private CommentDto commentDto1;
-    private CommentDto commentDto2;
-    private ItemRequestDto itemRequestDto1;
-
     @BeforeEach
-    void setUp() {
-        BookingResponseShortDto bookingResponseShortDto1 = BookingResponseShortDto.builder()
-                .id(1L)
-                .bookerId(1L)
-                .build();
-
-        BookingResponseShortDto bookingResponseShortDto2 = BookingResponseShortDto.builder()
-                .id(2L)
-                .bookerId(2L)
-                .build();
-
-        commentDto1 = CommentDto.builder()
-                .id(1L)
-                .text("item1")
-                .authorName("user1")
-                .created(LocalDateTime.now())
-                .build();
-
-        commentDto2 = CommentDto.builder()
-                .id(1L)
-                .text("item2")
-                .authorName("user2")
-                .created(LocalDateTime.now())
-                .build();
-
-        itemResponseDto1 = ItemResponseDto.builder()
-                .id(1L)
-                .name("item1")
-                .description("item1")
-                .available(true)
-                .lastBooking(bookingResponseShortDto2)
-                .nextBooking(bookingResponseShortDto1)
-                .comments(List.of(commentDto1))
-                .requestId(1L)
-                .build();
-
-        itemResponseDto2 = ItemResponseDto.builder()
-                .id(2L)
-                .name("item2")
-                .description("item2")
-                .available(true)
-                .lastBooking(bookingResponseShortDto1)
-                .nextBooking(bookingResponseShortDto2)
-                .comments(List.of(commentDto2))
-                .requestId(2L)
-                .build();
-
-        itemRequestDto1 = ItemRequestDto.builder()
-                .id(1L)
-                .description("itemRequest1")
-                .created(LocalDateTime.now())
-                .items(List.of(itemResponseDto2))
-                .build();
+    protected void setUp() {
+        super.setUp();
     }
 
     @Test
@@ -107,7 +51,7 @@ class ItemRequestControllerTest {
                         .content(mapper.writeValueAsString(itemRequestDto1))
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
-                        .header("X-Sharer-User-Id", 1L))
+                        .header(HEADER_USER_ID, 1L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(itemRequestDto1.getId()), Long.class))
                 .andExpect(jsonPath("$.description", is(itemRequestDto1.getDescription()), String.class));
@@ -123,31 +67,31 @@ class ItemRequestControllerTest {
         mvc.perform(get("/requests")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
-                        .header("X-Sharer-User-Id", 1L))
+                        .header(HEADER_USER_ID, 1L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id", is(itemRequestDto1.getId()), Long.class))
                 .andExpect(jsonPath("$[0].description", is(itemRequestDto1.getDescription()), String.class))
-                .andExpect(jsonPath("$[0].items[0].id", is(itemResponseDto2.getId()), Long.class))
-                .andExpect(jsonPath("$[0].items[0].name", is(itemResponseDto2.getName()), String.class))
-                .andExpect(jsonPath("$[0].items[0].description", is(itemResponseDto2.getDescription()), String.class))
+                .andExpect(jsonPath("$[0].items[0].id", is(itemResponseDto1.getId()), Long.class))
+                .andExpect(jsonPath("$[0].items[0].name", is(itemResponseDto1.getName()), String.class))
+                .andExpect(jsonPath("$[0].items[0].description", is(itemResponseDto1.getDescription()), String.class))
                 .andExpect(jsonPath("$[0].items[0].available",
-                        is(itemResponseDto2.getAvailable()), Boolean.class))
+                        is(itemResponseDto1.getAvailable()), Boolean.class))
                 .andExpect(jsonPath("$[0].items[0].lastBooking.id",
-                        is(itemResponseDto2.getLastBooking().getId()), Long.class))
+                        is(itemResponseDto1.getLastBooking().getId()), Long.class))
                 .andExpect(jsonPath("$[0].items[0].lastBooking.bookerId",
-                        is(itemResponseDto2.getLastBooking().getBookerId()), Long.class))
+                        is(itemResponseDto1.getLastBooking().getBookerId()), Long.class))
                 .andExpect(jsonPath("$[0].items[0].nextBooking.id",
-                        is(itemResponseDto2.getNextBooking().getId()), Long.class))
+                        is(itemResponseDto1.getNextBooking().getId()), Long.class))
                 .andExpect(jsonPath("$[0].items[0].nextBooking.bookerId",
-                        is(itemResponseDto2.getNextBooking().getBookerId()), Long.class))
+                        is(itemResponseDto1.getNextBooking().getBookerId()), Long.class))
                 .andExpect(jsonPath("$[0].items[0].comments[0].id",
-                        is(commentDto2.getId()), Long.class))
+                        is(commentDto1.getId()), Long.class))
                 .andExpect(jsonPath("$[0].items[0].comments[0].text",
-                        is(commentDto2.getText()), String.class))
+                        is(commentDto1.getText()), String.class))
                 .andExpect(jsonPath("$[0].items[0].comments[0].authorName",
-                        is(commentDto2.getAuthorName()), String.class))
+                        is(commentDto1.getAuthorName()), String.class))
                 .andExpect(jsonPath("$[0].items[0].requestId",
-                        is(itemResponseDto2.getRequestId()), Long.class));
+                        is(itemResponseDto1.getRequestId()), Long.class));
         Mockito.verify(itemRequestService, Mockito.times(1))
                 .getOwnerItemRequests(1L);
     }
@@ -163,31 +107,31 @@ class ItemRequestControllerTest {
                         .param("size", "10")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
-                        .header("X-Sharer-User-Id", 1L))
+                        .header(HEADER_USER_ID, 1L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$[0].id", is(itemRequestDto1.getId()), Long.class))
                 .andExpect(jsonPath("$[0].description", is(itemRequestDto1.getDescription()), String.class))
-                .andExpect(jsonPath("$[0].items[0].id", is(itemResponseDto2.getId()), Long.class))
-                .andExpect(jsonPath("$[0].items[0].name", is(itemResponseDto2.getName()), String.class))
-                .andExpect(jsonPath("$[0].items[0].description", is(itemResponseDto2.getDescription()), String.class))
+                .andExpect(jsonPath("$[0].items[0].id", is(itemResponseDto1.getId()), Long.class))
+                .andExpect(jsonPath("$[0].items[0].name", is(itemResponseDto1.getName()), String.class))
+                .andExpect(jsonPath("$[0].items[0].description", is(itemResponseDto1.getDescription()), String.class))
                 .andExpect(jsonPath("$[0].items[0].available",
-                        is(itemResponseDto2.getAvailable()), Boolean.class))
+                        is(itemResponseDto1.getAvailable()), Boolean.class))
                 .andExpect(jsonPath("$[0].items[0].lastBooking.id",
-                        is(itemResponseDto2.getLastBooking().getId()), Long.class))
+                        is(itemResponseDto1.getLastBooking().getId()), Long.class))
                 .andExpect(jsonPath("$[0].items[0].lastBooking.bookerId",
-                        is(itemResponseDto2.getLastBooking().getBookerId()), Long.class))
+                        is(itemResponseDto1.getLastBooking().getBookerId()), Long.class))
                 .andExpect(jsonPath("$[0].items[0].nextBooking.id",
-                        is(itemResponseDto2.getNextBooking().getId()), Long.class))
+                        is(itemResponseDto1.getNextBooking().getId()), Long.class))
                 .andExpect(jsonPath("$[0].items[0].nextBooking.bookerId",
-                        is(itemResponseDto2.getNextBooking().getBookerId()), Long.class))
+                        is(itemResponseDto1.getNextBooking().getBookerId()), Long.class))
                 .andExpect(jsonPath("$[0].items[0].comments[0].id",
-                        is(commentDto2.getId()), Long.class))
+                        is(commentDto1.getId()), Long.class))
                 .andExpect(jsonPath("$[0].items[0].comments[0].text",
-                        is(commentDto2.getText()), String.class))
+                        is(commentDto1.getText()), String.class))
                 .andExpect(jsonPath("$[0].items[0].comments[0].authorName",
-                        is(commentDto2.getAuthorName()), String.class))
+                        is(commentDto1.getAuthorName()), String.class))
                 .andExpect(jsonPath("$[0].items[0].requestId",
-                        is(itemResponseDto2.getRequestId()), Long.class));
+                        is(itemResponseDto1.getRequestId()), Long.class));
         Mockito.verify(itemRequestService, Mockito.times(1))
                 .getAllItemRequests(1L, 0, 10);
     }
@@ -200,31 +144,31 @@ class ItemRequestControllerTest {
         mvc.perform(get("/requests/{requestId}", 1L)
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON)
-                        .header("X-Sharer-User-Id", 1L))
+                        .header(HEADER_USER_ID, 1L))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id", is(itemRequestDto1.getId()), Long.class))
                 .andExpect(jsonPath("$.description", is(itemRequestDto1.getDescription()), String.class))
-                .andExpect(jsonPath("$.items[0].id", is(itemResponseDto2.getId()), Long.class))
-                .andExpect(jsonPath("$.items[0].name", is(itemResponseDto2.getName()), String.class))
-                .andExpect(jsonPath("$.items[0].description", is(itemResponseDto2.getDescription()), String.class))
+                .andExpect(jsonPath("$.items[0].id", is(itemResponseDto1.getId()), Long.class))
+                .andExpect(jsonPath("$.items[0].name", is(itemResponseDto1.getName()), String.class))
+                .andExpect(jsonPath("$.items[0].description", is(itemResponseDto1.getDescription()), String.class))
                 .andExpect(jsonPath("$.items[0].available",
-                        is(itemResponseDto2.getAvailable()), Boolean.class))
+                        is(itemResponseDto1.getAvailable()), Boolean.class))
                 .andExpect(jsonPath("$.items[0].lastBooking.id",
-                        is(itemResponseDto2.getLastBooking().getId()), Long.class))
+                        is(itemResponseDto1.getLastBooking().getId()), Long.class))
                 .andExpect(jsonPath("$.items[0].lastBooking.bookerId",
-                        is(itemResponseDto2.getLastBooking().getBookerId()), Long.class))
+                        is(itemResponseDto1.getLastBooking().getBookerId()), Long.class))
                 .andExpect(jsonPath("$.items[0].nextBooking.id",
-                        is(itemResponseDto2.getNextBooking().getId()), Long.class))
+                        is(itemResponseDto1.getNextBooking().getId()), Long.class))
                 .andExpect(jsonPath("$.items[0].nextBooking.bookerId",
-                        is(itemResponseDto2.getNextBooking().getBookerId()), Long.class))
+                        is(itemResponseDto1.getNextBooking().getBookerId()), Long.class))
                 .andExpect(jsonPath("$.items[0].comments[0].id",
-                        is(commentDto2.getId()), Long.class))
+                        is(commentDto1.getId()), Long.class))
                 .andExpect(jsonPath("$.items[0].comments[0].text",
-                        is(commentDto2.getText()), String.class))
+                        is(commentDto1.getText()), String.class))
                 .andExpect(jsonPath("$.items[0].comments[0].authorName",
-                        is(commentDto2.getAuthorName()), String.class))
+                        is(commentDto1.getAuthorName()), String.class))
                 .andExpect(jsonPath("$.items[0].requestId",
-                        is(itemResponseDto2.getRequestId()), Long.class));
+                        is(itemResponseDto1.getRequestId()), Long.class));
         Mockito.verify(itemRequestService, Mockito.times(1))
                 .getItemRequest(1L, 1L);
     }

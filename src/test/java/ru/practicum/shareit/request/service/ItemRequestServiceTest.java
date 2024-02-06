@@ -13,6 +13,7 @@ import ru.practicum.shareit.item.dto.ItemResponseDto;
 import ru.practicum.shareit.item.mapper.ItemMapper;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
+import ru.practicum.shareit.request.ItemRequestBaseTest;
 import ru.practicum.shareit.request.dto.ItemRequestDto;
 import ru.practicum.shareit.request.mapper.ItemRequestMapper;
 import ru.practicum.shareit.request.model.ItemRequest;
@@ -29,7 +30,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest(properties = {"db.name=test"})
-class ItemRequestServiceTest {
+class ItemRequestServiceTest extends ItemRequestBaseTest {
     @Autowired
     private ItemRequestService itemRequestService;
     @MockBean
@@ -42,46 +43,11 @@ class ItemRequestServiceTest {
     private ItemRepository itemRepository;
     @MockBean
     private UserRepository userRepository;
-    private ItemRequest itemRequest1;
-    private ItemRequestDto itemRequestDto1;
-    private User user1;
-    private Item item1;
-    private ItemResponseDto itemResponseDto1;
+
 
     @BeforeEach
-    void setUp() {
-        user1 = User.builder()
-                .id(1L)
-                .name("user1")
-                .email("user1@ya.ru")
-                .build();
-        itemRequest1 = ItemRequest.builder()
-                .id(1L)
-                .description("request1")
-                .requestor(user1)
-                .created(LocalDateTime.now())
-                .build();
-        itemResponseDto1 = ItemResponseDto.builder()
-                .id(1L)
-                .name("item1")
-                .description("item1")
-                .available(true)
-                .requestId(1L)
-                .build();
-        itemRequestDto1 = ItemRequestDto.builder()
-                .id(1L)
-                .description("itemRequest1")
-                .created(LocalDateTime.now())
-                .items(List.of(itemResponseDto1))
-                .build();
-        item1 = Item.builder()
-                .id(1L)
-                .name("item1")
-                .description("item1")
-                .available(true)
-                .owner(user1)
-                .request(itemRequest1)
-                .build();
+    protected void setUp() {
+        super.setUp();
 
         Mockito.when(itemRequestMapper.convertToEntity(Mockito.any(ItemRequestDto.class))).thenReturn(itemRequest1);
         Mockito.when(itemRequestMapper.convertToDto(Mockito.any(ItemRequest.class))).thenReturn(itemRequestDto1);

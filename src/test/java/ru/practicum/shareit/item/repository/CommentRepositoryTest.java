@@ -6,8 +6,10 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.test.annotation.DirtiesContext;
+import ru.practicum.shareit.item.ItemBaseTest;
 import ru.practicum.shareit.item.model.Comment;
 import ru.practicum.shareit.item.model.Item;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -20,66 +22,31 @@ import static org.junit.jupiter.api.Assertions.*;
 @DataJpaTest
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 @Slf4j
-class CommentRepositoryTest {
+class CommentRepositoryTest extends ItemBaseTest {
     @Autowired
     private CommentRepository commentRepository;
     @Autowired
     private UserRepository userRepository;
     @Autowired
     private ItemRepository itemRepository;
-    private Comment comment1;
-    private Comment comment2;
-    private Comment comment3;
-    private User user1;
-    private User user2;
-    private Item item1;
-    private Item item2;
+    @Autowired
+    private ItemRequestRepository itemRequestRepository;
 
     @BeforeEach
-    void setUp() {
-        user1 = User.builder()
-                .name("user1")
-                .email("user@ya.ru")
-                .build();
-        user2 = User.builder()
-                .name("user2")
-                .email("user@google.ru")
-                .build();
+    protected void setUp() {
+        super.setUp();
 
         user1 = userRepository.save(user1);
         user2 = userRepository.save(user2);
+        user3 = userRepository.save(user3);
 
-        item1 = Item.builder()
-                .name("item1")
-                .description("item1")
-                .available(true)
-                .owner(user1)
-                .build();
-        item2 = Item.builder()
-                .name("item2")
-                .description("item2")
-                .available(false)
-                .owner(user2)
-                .build();
+        itemRequest1 = itemRequestRepository.save(itemRequest1);
+        itemRequest2 = itemRequestRepository.save(itemRequest2);
+        itemRequest3 = itemRequestRepository.save(itemRequest3);
 
         item1 = itemRepository.save(item1);
         item2 = itemRepository.save(item2);
-
-        comment1 = new Comment();
-        comment1.setText("comment1");
-        comment1.setItem(item2);
-        comment1.setAuthor(user1);
-        comment1.setCreated(LocalDateTime.now());
-        comment2 = new Comment();
-        comment2.setText("comment2");
-        comment2.setItem(item1);
-        comment2.setAuthor(user1);
-        comment2.setCreated(LocalDateTime.now());
-        comment3 = new Comment();
-        comment3.setText("comment3");
-        comment3.setItem(item1);
-        comment3.setAuthor(user2);
-        comment3.setCreated(LocalDateTime.now());
+        item3 = itemRepository.save(item3);
 
         comment1 = commentRepository.save(comment1);
         comment2 = commentRepository.save(comment2);

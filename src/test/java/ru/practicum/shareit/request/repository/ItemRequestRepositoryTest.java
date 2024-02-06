@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.annotation.DirtiesContext;
+import ru.practicum.shareit.request.ItemRequestBaseTest;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
@@ -20,54 +21,20 @@ import static org.junit.jupiter.api.Assertions.*;
 @DataJpaTest
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 @Slf4j
-class ItemRequestRepositoryTest {
+class ItemRequestRepositoryTest extends ItemRequestBaseTest {
     @Autowired
     private UserRepository userRepository;
     @Autowired
     private ItemRequestRepository itemRequestRepository;
-    private final PageRequest pageRequest = PageRequest.of(0, 10);
-    private User user1;
-    private User user2;
-    private User user3;
-    private ItemRequest itemRequest1;
-    private ItemRequest itemRequest2;
-    private ItemRequest itemRequest3;
 
     @BeforeEach
-    void setUp() {
-        user1 = User.builder()
-                .name("user1")
-                .email("user@ya.ru")
-                .build();
-        user2 = User.builder()
-                .name("user2")
-                .email("user@google.ru")
-                .build();
-        user3 = User.builder()
-                .name("user3")
-                .email("user@mail.ru")
-                .build();
+    protected void setUp() {
+        super.setUp();
+
         user1 = userRepository.save(user1);
         user2 = userRepository.save(user2);
         user3 = userRepository.save(user3);
 
-        itemRequest1 = ItemRequest.builder()
-                .description("request1")
-                .requestor(user1)
-                .created(LocalDateTime.now())
-                .build();
-
-        itemRequest2 = ItemRequest.builder()
-                .description("request2")
-                .requestor(user2)
-                .created(LocalDateTime.now())
-                .build();
-
-        itemRequest3 = ItemRequest.builder()
-                .description("request3")
-                .requestor(user3)
-                .created(LocalDateTime.now())
-                .build();
         itemRequest1 = itemRequestRepository.save(itemRequest1);
         itemRequest2 = itemRequestRepository.save(itemRequest2);
         itemRequest3 = itemRequestRepository.save(itemRequest3);
@@ -75,9 +42,9 @@ class ItemRequestRepositoryTest {
 
     @Test
     void shouldFindAllByRequestorIdOrderByCreatedDesc() {
-        itemRequest1.setCreated(LocalDateTime.now().minusMonths(3));
-        itemRequest2.setCreated(LocalDateTime.now().minusMonths(1));
-        itemRequest3.setCreated(LocalDateTime.now().minusMonths(2));
+        itemRequest1.setCreated(LOCAL_DATE_TIME_NOW_WITH_NANO.minusMonths(3));
+        itemRequest2.setCreated(LOCAL_DATE_TIME_NOW_WITH_NANO.minusMonths(1));
+        itemRequest3.setCreated(LOCAL_DATE_TIME_NOW_WITH_NANO.minusMonths(2));
         itemRequest3.setRequestor(user2);
         itemRequest1 = itemRequestRepository.save(itemRequest1);
         itemRequest2 = itemRequestRepository.save(itemRequest2);
@@ -93,9 +60,9 @@ class ItemRequestRepositoryTest {
 
     @Test
     void shouldFindAllByRequestorIdNotOrderByCreatedDesc() {
-        itemRequest1.setCreated(LocalDateTime.now().minusMonths(3));
-        itemRequest2.setCreated(LocalDateTime.now().minusMonths(1));
-        itemRequest3.setCreated(LocalDateTime.now().minusMonths(2));
+        itemRequest1.setCreated(LOCAL_DATE_TIME_NOW_WITH_NANO.minusMonths(3));
+        itemRequest2.setCreated(LOCAL_DATE_TIME_NOW_WITH_NANO.minusMonths(1));
+        itemRequest3.setCreated(LOCAL_DATE_TIME_NOW_WITH_NANO.minusMonths(2));
         itemRequest3.setRequestor(user2);
         itemRequest1 = itemRequestRepository.save(itemRequest1);
         itemRequest2 = itemRequestRepository.save(itemRequest2);

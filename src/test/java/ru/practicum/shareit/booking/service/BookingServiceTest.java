@@ -8,6 +8,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import ru.practicum.shareit.booking.BookingBaseTest;
 import ru.practicum.shareit.booking.dto.BookingRequestDto;
 import ru.practicum.shareit.booking.dto.BookingResponseDto;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
@@ -32,7 +33,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(properties = {"db.name=test"})
-class BookingServiceTest {
+class BookingServiceTest extends BookingBaseTest {
     @Autowired
     private BookingService bookingService;
     @MockBean
@@ -44,59 +45,9 @@ class BookingServiceTest {
     @MockBean
     private BookingMapper bookingMapper;
 
-    private User user1;
-    private Item item1;
-    private ItemRequest itemRequest1;
-    private Booking booking1;
-    private BookingRequestDto bookingRequestDto1;
-    private BookingResponseDto bookingResponseDto1;
-
-
     @BeforeEach
-    void setUp() {
-        user1 = User.builder()
-                .id(1L)
-                .name("user1")
-                .email("user1@ya.ru")
-                .build();
-
-        itemRequest1 = ItemRequest.builder()
-                .description("request1")
-                .requestor(user1)
-                .created(LocalDateTime.now().withNano(0))
-                .build();
-
-        item1 = Item.builder()
-                .id(1L)
-                .name("item1")
-                .description("item1")
-                .available(true)
-                .owner(user1)
-                .request(itemRequest1)
-                .build();
-
-        booking1 = new Booking();
-        booking1.setId(1L);
-        booking1.setStart(LocalDateTime.now().plusMonths(1).withNano(0));
-        booking1.setEnd(LocalDateTime.now().plusMonths(2).withNano(0));
-        booking1.setItem(item1);
-        booking1.setBooker(user1);
-        booking1.setStatus(Status.APPROVED);
-
-        bookingRequestDto1 = BookingRequestDto.builder()
-                .itemId(1L)
-                .start(LocalDateTime.now().plusMonths(1).withNano(0))
-                .end(LocalDateTime.now().plusMonths(2).withNano(0))
-                .build();
-
-        bookingResponseDto1 = BookingResponseDto.builder()
-                .id(1L)
-                .start(LocalDateTime.now().plusMonths(1).withNano(0))
-                .end(LocalDateTime.now().plusMonths(2).withNano(0))
-                .item(item1)
-                .booker(user1)
-                .status(Status.APPROVED)
-                .build();
+    protected void setUp() {
+        super.setUp();
 
         Mockito.when(bookingMapper.convertToResponseDto(Mockito.any(Booking.class)))
                 .thenReturn(bookingResponseDto1);

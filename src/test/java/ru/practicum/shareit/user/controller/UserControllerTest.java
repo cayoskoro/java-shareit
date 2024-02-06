@@ -10,6 +10,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import ru.practicum.shareit.user.UserBaseTest;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.service.UserService;
 
@@ -22,22 +23,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(controllers = UserController.class)
 @TestPropertySource(properties = "db.name=test")
-class UserControllerTest {
+class UserControllerTest extends UserBaseTest {
     @Autowired
     private ObjectMapper mapper;
     @MockBean
     private UserService userService;
     @Autowired
     private MockMvc mvc;
-    private UserDto userDto1;
 
     @BeforeEach
-    void setUp() {
-        userDto1 = UserDto.builder()
-                .id(1L)
-                .name("user1")
-                .email("user1@ya.ru")
-                .build();
+    protected void setUp() {
+        super.setUp();
     }
 
     @Test

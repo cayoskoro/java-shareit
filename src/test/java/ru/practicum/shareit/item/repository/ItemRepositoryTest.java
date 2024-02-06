@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.test.annotation.DirtiesContext;
+import ru.practicum.shareit.item.ItemBaseTest;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.request.model.ItemRequest;
 import ru.practicum.shareit.request.repository.ItemRequestRepository;
@@ -22,84 +23,26 @@ import static org.junit.jupiter.api.Assertions.*;
 @DataJpaTest
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_EACH_TEST_METHOD)
 @Slf4j
-class ItemRepositoryTest {
+class ItemRepositoryTest extends ItemBaseTest {
     @Autowired
     private UserRepository userRepository;
     @Autowired
     private ItemRepository itemRepository;
     @Autowired
     private ItemRequestRepository itemRequestRepository;
-    private final PageRequest pageRequest = PageRequest.of(0, 10);
-    private User user1;
-    private User user2;
-    private User user3;
-    private ItemRequest itemRequest1;
-    private ItemRequest itemRequest2;
-    private ItemRequest itemRequest3;
-    private Item item1;
-    private Item item2;
-    private Item item3;
 
     @BeforeEach
-    void setUp() {
-        user1 = User.builder()
-                .name("user1")
-                .email("user@ya.ru")
-                .build();
-        user2 = User.builder()
-                .name("user2")
-                .email("user@google.ru")
-                .build();
-        user3 = User.builder()
-                .name("user3")
-                .email("user@mail.ru")
-                .build();
+    protected void setUp() {
+        super.setUp();
+
         user1 = userRepository.save(user1);
         user2 = userRepository.save(user2);
         user3 = userRepository.save(user3);
 
-        itemRequest1 = ItemRequest.builder()
-                .description("request1")
-                .requestor(user1)
-                .created(LocalDateTime.now())
-                .build();
-
-        itemRequest2 = ItemRequest.builder()
-                .description("request2")
-                .requestor(user2)
-                .created(LocalDateTime.now())
-                .build();
-
-        itemRequest3 = ItemRequest.builder()
-                .description("request3")
-                .requestor(user3)
-                .created(LocalDateTime.now())
-                .build();
         itemRequest1 = itemRequestRepository.save(itemRequest1);
         itemRequest2 = itemRequestRepository.save(itemRequest2);
         itemRequest3 = itemRequestRepository.save(itemRequest3);
 
-        item1 = Item.builder()
-                .name("item1")
-                .description("item1")
-                .available(true)
-                .owner(user1)
-                .request(itemRequest2)
-                .build();
-        item2 = Item.builder()
-                .name("item2")
-                .description("item2")
-                .available(false)
-                .owner(user2)
-                .request(itemRequest3)
-                .build();
-        item3 = Item.builder()
-                .name("item3")
-                .description("item3")
-                .available(true)
-                .owner(user3)
-                .request(itemRequest1)
-                .build();
         item1 = itemRepository.save(item1);
         item2 = itemRepository.save(item2);
         item3 = itemRepository.save(item3);

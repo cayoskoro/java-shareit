@@ -17,6 +17,7 @@ import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.repository.BookingRepository;
 import ru.practicum.shareit.common.exception.IncorrectParameterException;
 import ru.practicum.shareit.common.exception.NotAvailableException;
+import ru.practicum.shareit.item.ItemBaseTest;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemRequestDto;
 import ru.practicum.shareit.item.dto.ItemResponseDto;
@@ -39,7 +40,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(properties = {"db.name=test"})
-class ItemServiceTest {
+class ItemServiceTest extends ItemBaseTest {
     @Autowired
     private ItemService itemService;
     @MockBean
@@ -59,89 +60,9 @@ class ItemServiceTest {
     @MockBean
     private BookingMapper bookingMapper;
 
-    private ItemResponseDto itemResponseDto1;
-    private CommentDto commentDto1;
-    private ItemRequestDto itemRequestDto1;
-    private ItemRequest itemRequest1;
-    private User user1;
-    private Comment comment1;
-    private Item item1;
-    private Booking booking1;
-
     @BeforeEach
-    void setUp() {
-        user1 = User.builder()
-                .id(1L)
-                .name("user1")
-                .email("user1@ya.ru")
-                .build();
-
-        item1 = Item.builder()
-                .id(1L)
-                .name("item1")
-                .description("item1")
-                .available(true)
-                .owner(user1)
-                .build();
-
-        comment1 = new Comment();
-        comment1.setId(1L);
-        comment1.setText("comment1");
-        comment1.setItem(item1);
-        comment1.setAuthor(user1);
-        comment1.setCreated(LocalDateTime.now());
-
-        commentDto1 = CommentDto.builder()
-                .id(1L)
-                .text("comment1")
-                .authorName("user1")
-                .created(LocalDateTime.now())
-                .build();
-
-        booking1 = new Booking();
-        booking1.setStart(LocalDateTime.now());
-        booking1.setEnd(LocalDateTime.now());
-        booking1.setItem(item1);
-        booking1.setBooker(user1);
-        booking1.setStatus(Status.WAITING);
-
-        BookingResponseShortDto bookingResponseShortDto1 = BookingResponseShortDto.builder()
-                .id(1L)
-                .bookerId(1L)
-                .build();
-
-        BookingResponseDto bookingResponseDto1 = BookingResponseDto.builder()
-                .id(1L)
-                .start(LocalDateTime.now())
-                .end(LocalDateTime.now())
-                .item(item1)
-                .booker(user1)
-                .status(Status.APPROVED)
-                .build();
-
-        itemResponseDto1 = ItemResponseDto.builder()
-                .id(1L)
-                .name("item1")
-                .description("item1")
-                .available(true)
-                .comments(List.of(commentDto1))
-                .requestId(1L)
-                .build();
-
-        itemRequest1 = ItemRequest.builder()
-                .id(1L)
-                .description("request1")
-                .requestor(user1)
-                .created(LocalDateTime.now())
-                .build();
-
-        itemRequestDto1 = ItemRequestDto.builder()
-                .id(1L)
-                .name("item1")
-                .description("item1")
-                .available(true)
-                .requestId(1L)
-                .build();
+    protected void setUp() {
+        super.setUp();
 
         Mockito.when(commentMapper.convertToEntity(Mockito.any(CommentDto.class))).thenReturn(comment1);
         Mockito.when(commentMapper.convertToDto(Mockito.any(Comment.class))).thenReturn(commentDto1);
@@ -165,7 +86,8 @@ class ItemServiceTest {
         Mockito.when(itemRepository.findAllByOwnerIdOrderByIdAsc(Mockito.anyLong(), Mockito.any(PageRequest.class)))
                 .thenReturn(new PageImpl<>(List.of(item1)));
         Mockito.when(bookingRepository.findAllByItemOwnerIdAndItemIn(Mockito.anyLong(), Mockito.anyCollection()))
-                .thenReturn(List.of(booking1));
+                .thenReturn(List.of(booking1, booking2));
+        comment1.setItem(item1);
         Mockito.when(commentRepository.findAllByItemInEager(Mockito.anyCollection()))
                 .thenReturn(List.of(comment1));
 
@@ -173,7 +95,7 @@ class ItemServiceTest {
 
         assertNotNull(items);
         assertEquals(1, items.size());
-        assertEquals(items, List.of(itemResponseDto1));
+        assertEquals(items, List.of(itemResponseDto1.toBuilder().nextBooking(bookingResponseShortDto1).build()));
         Mockito.verify(itemRepository, Mockito.times(1))
                 .findAllByOwnerIdOrderByIdAsc(1L, PageRequest.of(0, 10));
     }
@@ -181,13 +103,15 @@ class ItemServiceTest {
     @Test
     void shouldGetItemById() {
         Mockito.when(itemRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(item1));
-        Mockito.when(bookingRepository.findAllByItemOwnerId(Mockito.anyLong())).thenReturn(List.of(booking1));
+        Mockito.when(bookingRepository.findAllByItemOwnerId(Mockito.anyLong()))
+                .thenReturn(List.of(booking1, booking2));
+        comment1.setItem(item1);
         Mockito.when(commentRepository.findAllByItemIdEager(Mockito.anyLong())).thenReturn(List.of(comment1));
 
         ItemResponseDto itemResponseDto = itemService.getItemById(user1.getId(), item1.getId());
 
         assertNotNull(itemResponseDto);
-        assertEquals(itemResponseDto, itemResponseDto1);
+        assertEquals(itemResponseDto, itemResponseDto1.toBuilder().nextBooking(bookingResponseShortDto1).build());
         Mockito.verify(itemRepository, Mockito.times(1))
                 .findById(1L);
     }

@@ -2,11 +2,13 @@ package ru.practicum.shareit.booking.dto;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.json.JsonTest;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.boot.test.json.JsonContent;
+import ru.practicum.shareit.booking.BookingBaseTest;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
@@ -18,45 +20,32 @@ import static org.assertj.core.api.Assertions.assertThat;
 @JsonTest
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @Slf4j
-class BookingResponseDtoTest {
+class BookingResponseDtoTest extends BookingBaseTest {
     private final JacksonTester<BookingResponseDto> json;
+
+    @BeforeEach
+    protected void setUp() {
+        super.setUp();
+    }
 
     @Test
     void shouldGetBookingResponseDto() throws Exception {
-        Item item = Item.builder()
-                .id(1L)
-                .name("item")
-                .description("item1")
-                .available(true)
-                .build();
-
-        User user = User.builder()
-                .id(1L)
-                .name("user")
-                .email("user@ya.ru")
-                .build();
-
-        BookingResponseDto bookingResponseDto = BookingResponseDto.builder()
-                .id(1L)
-                .start(LocalDateTime.of(2024, 1, 1, 12, 0))
-                .end(LocalDateTime.of(2024, 1, 1, 13, 0))
-                .item(item)
-                .booker(user)
-                .status(Status.APPROVED)
-                .build();
-        log.info("bookingDto = {}", bookingResponseDto);
-        JsonContent<BookingResponseDto> result = json.write(bookingResponseDto);
-        assertThat(result).extractingJsonPathNumberValue("$.id").isEqualTo(1);
-        assertThat(result).extractingJsonPathStringValue("$.start").isEqualTo("2024-01-01T12:00:00");
-        assertThat(result).extractingJsonPathStringValue("$.end").isEqualTo("2024-01-01T13:00:00");
-        assertThat(result).extractingJsonPathNumberValue("$.item.id").isEqualTo(item.getId().intValue());
-        assertThat(result).extractingJsonPathStringValue("$.item.name").isEqualTo(item.getName());
+        log.info("bookingDto = {}", bookingResponseDto1);
+        JsonContent<BookingResponseDto> result = json.write(bookingResponseDto1);
+        assertThat(result).extractingJsonPathNumberValue("$.id")
+                .isEqualTo(bookingResponseDto1.getId().intValue());
+        assertThat(result).extractingJsonPathStringValue("$.start")
+                .isEqualTo(bookingResponseDto1.getStart().toString());
+        assertThat(result).extractingJsonPathStringValue("$.end")
+                .isEqualTo(bookingResponseDto1.getEnd().toString());
+        assertThat(result).extractingJsonPathNumberValue("$.item.id").isEqualTo(item1.getId().intValue());
+        assertThat(result).extractingJsonPathStringValue("$.item.name").isEqualTo(item1.getName());
         assertThat(result).extractingJsonPathStringValue("$.item.description")
-                .isEqualTo(item.getDescription());
-        assertThat(result).extractingJsonPathBooleanValue("$.item.available").isEqualTo(item.isAvailable());
-        assertThat(result).extractingJsonPathNumberValue("$.booker.id").isEqualTo(user.getId().intValue());
-        assertThat(result).extractingJsonPathStringValue("$.booker.name").isEqualTo(user.getName());
-        assertThat(result).extractingJsonPathStringValue("$.booker.email").isEqualTo(user.getEmail());
+                .isEqualTo(item1.getDescription());
+        assertThat(result).extractingJsonPathBooleanValue("$.item.available").isEqualTo(item1.isAvailable());
+        assertThat(result).extractingJsonPathNumberValue("$.booker.id").isEqualTo(user1.getId().intValue());
+        assertThat(result).extractingJsonPathStringValue("$.booker.name").isEqualTo(user1.getName());
+        assertThat(result).extractingJsonPathStringValue("$.booker.email").isEqualTo(user1.getEmail());
         assertThat(result).extractingJsonPathStringValue("$.status").isEqualTo("APPROVED");
 
     }
