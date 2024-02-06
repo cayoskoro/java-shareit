@@ -14,6 +14,10 @@ import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.common.exception.IncorrectParameterException;
+import ru.practicum.shareit.common.exception.NotAvailableException;
+import ru.practicum.shareit.common.exception.NotFoundException;
+import ru.practicum.shareit.common.exception.UnsupportedStateException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.request.model.ItemRequest;
@@ -25,8 +29,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(properties = {"db.name=test"})
 class BookingServiceTest {
@@ -112,6 +115,14 @@ class BookingServiceTest {
         assertEquals(bookingResponseDto, bookingResponseDto1);
         Mockito.verify(bookingRepository, Mockito.times(1))
                 .findById(booking1.getId());
+    }
+
+    @Test
+    void shouldGetAllBookingsWithStatusUnsupported() {
+        final UnsupportedStateException exception = assertThrows(
+                UnsupportedStateException.class,
+                () -> bookingService.getAllBookings(user1.getId(), "UNSUPPORTED", 0, 10)
+        );
     }
 
     @Test
@@ -206,6 +217,14 @@ class BookingServiceTest {
 
         assertNotNull(bookingResponseDtos);
         assertEquals(bookingResponseDtos, List.of(bookingResponseDto1));
+    }
+
+    @Test
+    void shouldGetAllOwnerBookingsWithStatusUnsupported() {
+        final UnsupportedStateException exception = assertThrows(
+                UnsupportedStateException.class,
+                () -> bookingService.getAllOwnerBookings(user1.getId(), "UNSUPPORTED", 0, 10)
+        );
     }
 
     @Test
@@ -313,6 +332,19 @@ class BookingServiceTest {
     }
 
     @Test
+    void shouldAddNewBookingWithNotAvailable() {
+        Mockito.when(userRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(user1));
+        item1 = item1.toBuilder().available(false).owner(user1.toBuilder().id(2L).build()).build();
+        Mockito.when(itemRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(item1));
+        Mockito.when(bookingRepository.save(Mockito.any(Booking.class))).thenReturn(booking1);
+
+        final NotAvailableException exception = assertThrows(
+                NotAvailableException.class,
+                () -> bookingService.addNewBooking(user1.getId(), bookingRequestDto1)
+        );
+    }
+
+    @Test
     void shouldApproveBooking() {
         Mockito.when(userRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(user1));
         booking1.setStatus(Status.WAITING);
@@ -325,6 +357,33 @@ class BookingServiceTest {
         assertNotNull(bookingResponseDto);
         assertEquals(bookingResponseDto, bookingResponseDto1);
         Mockito.verify(bookingRepository, Mockito.times(1)).save(booking1);
+    }
+
+    @Test
+    void shouldApproveBookingWithIncorrectParameter() {
+        Mockito.when(userRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(user1));
+        Mockito.when(bookingRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(booking1));
+        Mockito.when(bookingRepository.save(Mockito.any(Booking.class))).thenReturn(booking1);
+
+        final IncorrectParameterException exception = assertThrows(
+                IncorrectParameterException.class,
+                () -> bookingService.approveBooking(user1.getId(), booking1.getId(), Status.WAITING)
+        );
+
+    }
+
+    @Test
+    void shouldApproveBookingWithNotFound() {
+        Mockito.when(userRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(user1));
+        booking1.setStatus(Status.WAITING);
+        Mockito.when(bookingRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(booking1));
+        Mockito.when(bookingRepository.save(Mockito.any(Booking.class))).thenReturn(booking1);
+
+        final NotFoundException exception = assertThrows(
+                NotFoundException.class,
+                () -> bookingService.approveBooking(2, booking1.getId(), Status.WAITING)
+        );
+
     }
 
 }

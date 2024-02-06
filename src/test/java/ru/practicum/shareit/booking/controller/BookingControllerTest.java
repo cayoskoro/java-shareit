@@ -14,6 +14,10 @@ import ru.practicum.shareit.booking.dto.BookingRequestDto;
 import ru.practicum.shareit.booking.dto.BookingResponseDto;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.service.BookingService;
+import ru.practicum.shareit.common.exception.IncorrectParameterException;
+import ru.practicum.shareit.common.exception.NotAvailableException;
+import ru.practicum.shareit.common.exception.NotFoundException;
+import ru.practicum.shareit.common.exception.UnsupportedStateException;
 import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.user.model.User;
 
@@ -133,6 +137,37 @@ class BookingControllerTest {
     }
 
     @Test
+    void shouldAddNewBookingWithNotFound() throws Exception {
+        Mockito.when(bookingService.addNewBooking(Mockito.anyLong(), Mockito.any()))
+                .thenThrow(new NotFoundException(
+                        "Бронирование недоступно. Пользователь по id = 1 является владельцем вещи по id = 1"));
+
+        mvc.perform(post("/bookings")
+                        .content(mapper.writeValueAsString(booking1))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header("X-Sharer-User-Id", 1L))
+                .andExpect(status().isNotFound());
+        Mockito.verify(bookingService, Mockito.times(1))
+                .addNewBooking(1L, bookingRequest1);
+    }
+
+    @Test
+    void shouldAddNewBookingWithNotAvailable() throws Exception {
+        Mockito.when(bookingService.addNewBooking(Mockito.anyLong(), Mockito.any()))
+                .thenThrow(new NotAvailableException("Вещь по id = 1 в данный момент недоступна"));
+
+        mvc.perform(post("/bookings")
+                        .content(mapper.writeValueAsString(booking1))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header("X-Sharer-User-Id", 1L))
+                .andExpect(status().isBadRequest());
+        Mockito.verify(bookingService, Mockito.times(1))
+                .addNewBooking(1L, bookingRequest1);
+    }
+
+    @Test
     void shouldApproveBooking() throws Exception {
         Mockito.when(bookingService.approveBooking(Mockito.anyLong(), Mockito.anyLong(), Mockito.any()))
                 .thenReturn(booking1);
@@ -147,6 +182,36 @@ class BookingControllerTest {
                 .andExpect(jsonPath("$.status", is(booking1.getStatus().toString()), Status.class))
                 .andExpect(jsonPath("$.booker.id", is(booking1.getBooker().getId()), Long.class))
                 .andExpect(jsonPath("$.item.id", is(booking1.getItem().getId()), Long.class));
+        Mockito.verify(bookingService, Mockito.times(1))
+                .approveBooking(1L, 1L, Status.APPROVED);
+    }
+
+    @Test
+    void shouldApproveBookingWithIncorrectParameter() throws Exception {
+        Mockito.when(bookingService.approveBooking(Mockito.anyLong(), Mockito.anyLong(), Mockito.any()))
+                .thenThrow(new IncorrectParameterException("Аренда по id = 1 уже одобрена владельцем по id = 1"));
+
+        mvc.perform(patch("/bookings/{bookingId}", 1L)
+                        .param("approved", "true")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header("X-Sharer-User-Id", 1L))
+                .andExpect(status().isBadRequest());
+        Mockito.verify(bookingService, Mockito.times(1))
+                .approveBooking(1L, 1L, Status.APPROVED);
+    }
+
+    @Test
+    void shouldApproveBookingWithNotFound() throws Exception {
+        Mockito.when(bookingService.approveBooking(Mockito.anyLong(), Mockito.anyLong(), Mockito.any()))
+                .thenThrow(new NotFoundException("Пользователь по id = 1 не является владельцом аренды - 1"));
+
+        mvc.perform(patch("/bookings/{bookingId}", 1L)
+                        .param("approved", "true")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header("X-Sharer-User-Id", 1L))
+                .andExpect(status().isNotFound());
         Mockito.verify(bookingService, Mockito.times(1))
                 .approveBooking(1L, 1L, Status.APPROVED);
     }
@@ -170,6 +235,20 @@ class BookingControllerTest {
     }
 
     @Test
+    void shouldGetBookingByIdWithInternalError() throws Exception {
+        Mockito.when(bookingService.getBookingById(Mockito.anyLong(), Mockito.anyLong()))
+                .thenThrow(new RuntimeException("InternalError"));
+
+        mvc.perform(get("/bookings/{bookingId}", 1L)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header("X-Sharer-User-Id", 1L))
+                .andExpect(status().isInternalServerError());
+        Mockito.verify(bookingService, Mockito.times(1))
+                .getBookingById(1L, 1L);
+    }
+
+    @Test
     void shouldGetAllBookings() throws Exception {
         Mockito.when(bookingService.getAllBookings(Mockito.anyLong(), Mockito.anyString(), Mockito.anyInt(),
                 Mockito.anyInt())).thenReturn(Collections.singleton(booking1));
@@ -186,6 +265,24 @@ class BookingControllerTest {
                 .andExpect(jsonPath("$[0].status", is(booking1.getStatus().toString()), Status.class))
                 .andExpect(jsonPath("$[0].booker.id", is(booking1.getBooker().getId()), Long.class))
                 .andExpect(jsonPath("$[0].item.id", is(booking1.getItem().getId()), Long.class));
+        Mockito.verify(bookingService, Mockito.times(1))
+                .getAllBookings(1L, "ALL", 0, 10);
+    }
+
+    @Test
+    void shouldGetAllBookingsWithUnsupported() throws Exception {
+        Mockito.when(bookingService.getAllBookings(Mockito.anyLong(), Mockito.anyString(), Mockito.anyInt(),
+                        Mockito.anyInt()))
+                .thenThrow(new UnsupportedStateException("Unknown state: UNSUPPORTED"));
+
+        mvc.perform(get("/bookings")
+                        .param("state", "ALL")
+                        .param("from", "0")
+                        .param("size", "10")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON)
+                        .header("X-Sharer-User-Id", 1L))
+                .andExpect(status().isBadRequest());
         Mockito.verify(bookingService, Mockito.times(1))
                 .getAllBookings(1L, "ALL", 0, 10);
     }

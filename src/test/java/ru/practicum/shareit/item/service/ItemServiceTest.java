@@ -15,6 +15,8 @@ import ru.practicum.shareit.booking.mapper.BookingMapper;
 import ru.practicum.shareit.booking.model.Booking;
 import ru.practicum.shareit.booking.model.Status;
 import ru.practicum.shareit.booking.repository.BookingRepository;
+import ru.practicum.shareit.common.exception.IncorrectParameterException;
+import ru.practicum.shareit.common.exception.NotAvailableException;
 import ru.practicum.shareit.item.dto.CommentDto;
 import ru.practicum.shareit.item.dto.ItemRequestDto;
 import ru.practicum.shareit.item.dto.ItemResponseDto;
@@ -34,8 +36,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(properties = {"db.name=test"})
 class ItemServiceTest {
@@ -206,6 +207,17 @@ class ItemServiceTest {
                 .save(item1);
     }
 
+    @Test
+    void shouldAddNewItemWithNotAvailable() {
+        Mockito.when(userRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(user1));
+        Mockito.when(itemRequestRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(itemRequest1));
+        Mockito.when(itemRepository.save(Mockito.any(Item.class))).thenReturn(item1);
+
+        final NotAvailableException exception = assertThrows(
+                NotAvailableException.class,
+                () -> itemService.addNewItem(user1.getId(), itemRequestDto1)
+        );
+    }
 
     @Test
     void shouldEditItem() {
@@ -240,6 +252,18 @@ class ItemServiceTest {
     }
 
     @Test
+    void shouldSearchItemsWithIncorrectParameter() {
+        Mockito.when(itemRepository.searchAvailableByNameOrDescriptionContainingIgnoreCase(Mockito.anyString(),
+                        Mockito.any(PageRequest.class)))
+                .thenReturn(new PageImpl<>(List.of(item1)));
+
+        final IncorrectParameterException exception = assertThrows(
+                IncorrectParameterException.class,
+                () -> itemService.searchItems("%%%", 0, 10)
+        );
+    }
+
+    @Test
     void shouldAddNewComment() {
         Mockito.when(userRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(user1));
         Mockito.when(itemRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(item1));
@@ -254,5 +278,19 @@ class ItemServiceTest {
         assertEquals(commentDto, commentDto1);
         Mockito.verify(commentRepository, Mockito.times(1))
                 .save(comment1);
+    }
+
+    @Test
+    void shouldAddNewCommentWithNotAvailable() {
+        Mockito.when(userRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(user1));
+        Mockito.when(itemRepository.findById(Mockito.anyLong())).thenReturn(Optional.of(item1));
+        Mockito.when(bookingRepository.existsByBookerIdAndItemIdAndStatusAndEndIsBeforeOrderByEndDesc(Mockito.anyLong(),
+                        Mockito.anyLong(), Mockito.any(Status.class), Mockito.any(LocalDateTime.class)))
+                .thenReturn(false);
+
+        final NotAvailableException exception = assertThrows(
+                NotAvailableException.class,
+                () -> itemService.addNewComment(user1.getId(), item1.getId(), commentDto1)
+        );
     }
 }
