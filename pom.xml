@@ -205,6 +205,13 @@
 					<version>0.8.11</version>
 					<configuration>
 						<output>file</output>
+						<excludes>
+							<exclude>**/*CommentMapperImpl.class</exclude>
+							<exclude>**/*ItemMapperImpl.class</exclude>
+							<exclude>**/*ItemRequestMapperImpl.class</exclude>
+							<exclude>**/*UserMapperImpl.class</exclude>
+							<exclude>**/*BookingMapperImpl.class</exclude>
+						</excludes>
 					</configuration>
 					<executions>
 						<execution>

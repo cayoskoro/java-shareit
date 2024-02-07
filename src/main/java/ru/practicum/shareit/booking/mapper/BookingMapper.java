@@ -8,6 +8,8 @@ import ru.practicum.shareit.booking.dto.BookingResponseDto;
 import ru.practicum.shareit.booking.dto.BookingResponseShortDto;
 import ru.practicum.shareit.booking.model.Booking;
 
+import java.util.Collection;
+
 @Mapper(componentModel = "spring", mappingControl = DeepClone.class)
 public interface BookingMapper {
     @Mapping(target = "status", constant = "WAITING")
@@ -17,4 +19,6 @@ public interface BookingMapper {
 
     @Mapping(target = "bookerId", source = "booker.id")
     BookingResponseShortDto convertToResponseShortDto(Booking entity);
+
+    Collection<BookingResponseDto> convertToResponseDtoCollection(Collection<Booking> entities);
 }

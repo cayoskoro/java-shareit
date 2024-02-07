@@ -6,6 +6,8 @@ import ru.practicum.shareit.item.dto.ItemRequestDto;
 import ru.practicum.shareit.item.dto.ItemResponseDto;
 import ru.practicum.shareit.item.model.Item;
 
+import java.util.Collection;
+
 @Mapper(componentModel = "spring", mappingControl = DeepClone.class)
 public interface ItemMapper {
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
@@ -14,7 +16,11 @@ public interface ItemMapper {
 
     Item convertRequestDtoToEntity(ItemRequestDto dto);
 
+    @Mapping(target = "requestId", source = "entity.request.id")
     ItemResponseDto convertToResponseDto(Item entity);
 
     Item clone(Item entity);
+
+    @Mapping(target = "requestId", source = "entity.request.id")
+    Collection<ItemResponseDto> convertToResponseDtoCollection(Collection<Item> entities);
 }

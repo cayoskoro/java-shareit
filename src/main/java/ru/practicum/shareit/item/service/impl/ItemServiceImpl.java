@@ -2,6 +2,7 @@ package ru.practicum.shareit.item.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.shareit.booking.mapper.BookingMapper;
@@ -22,6 +23,8 @@ import ru.practicum.shareit.item.model.Item;
 import ru.practicum.shareit.item.repository.CommentRepository;
 import ru.practicum.shareit.item.repository.ItemRepository;
 import ru.practicum.shareit.item.service.ItemService;
+import ru.practicum.shareit.request.model.ItemRequest;
+import ru.practicum.shareit.request.repository.ItemRequestRepository;
 import ru.practicum.shareit.user.model.User;
 import ru.practicum.shareit.user.repository.UserRepository;
 
@@ -41,12 +44,14 @@ public class ItemServiceImpl implements ItemService {
     private final UserRepository userRepository;
     private final CommentRepository commentRepository;
     private final BookingRepository bookingRepository;
+    private final ItemRequestRepository itemRequestRepository;
 
     @Override
-    public Collection<ItemResponseDto> getAllUserItems(long userId) {
+    public Collection<ItemResponseDto> getAllUserItems(long userId, int from, int size) {
         checkIfUserExists(userId);
+        PageRequest page = PageRequest.of(from > 0 ? from / size : 0, size);
 
-        Collection<Item> items = itemRepository.findAllByOwnerIdOrderByIdAsc(userId);
+        Collection<Item> items = itemRepository.findAllByOwnerIdOrderByIdAsc(userId, page).getContent();
         Collection<Booking> bookings = bookingRepository.findAllByItemOwnerIdAndItemIn(userId, items);
         Map<Long, List<Comment>> commentMap = commentRepository.findAllByItemInEager(items).stream()
                 .collect(Collectors.groupingBy(it -> it.getItem().getId()));
@@ -68,9 +73,7 @@ public class ItemServiceImpl implements ItemService {
                     return itemMapper.convertToResponseDto(item).toBuilder()
                             .lastBooking(bookingMapper.convertToResponseShortDto(lastBooking))
                             .nextBooking(bookingMapper.convertToResponseShortDto(nextBooking))
-                            .comments(comments.stream()
-                                    .map(commentMapper::convertToDto)
-                                    .collect(Collectors.toList())).build();
+                            .comments(commentMapper.convertToDtoCollection(comments)).build();
                 })
                 .collect(Collectors.toList());
     }
@@ -96,17 +99,28 @@ public class ItemServiceImpl implements ItemService {
         return itemMapper.convertToResponseDto(item).toBuilder()
                 .lastBooking(bookingMapper.convertToResponseShortDto(lastBooking))
                 .nextBooking(bookingMapper.convertToResponseShortDto(nextBooking))
-                .comments(comments.stream()
-                        .map(commentMapper::convertToDto)
-                        .collect(Collectors.toList())).build();
+                .comments(commentMapper.convertToDtoCollection(comments)).build();
     }
 
     @Override
     @Transactional
     public ItemResponseDto addNewItem(long userId, ItemRequestDto itemDto) {
         User user = getUserByIdOrElseThrow(userId);
+        ItemRequest itemRequest = null;
+        if (itemDto.getRequestId() != null) {
+            itemRequest = itemRequestRepository.findById(itemDto.getRequestId())
+                    .orElseThrow(() -> new NotFoundException(
+                            String.format("Запроса вещи по id = %s не существует", itemDto.getRequestId())));
+            if (itemRequest.getRequestor().getId() == userId) {
+                throw new NotAvailableException(
+                        String.format("Пользователь по id = %d не может добавить вещь на запрос вещи по id = %d, " +
+                                "так как является создателем этого запроса", userId, itemRequest.getId()));
+            }
+        }
+
         Item item = itemMapper.convertRequestDtoToEntity(itemDto);
         item.setOwner(user);
+        item.setRequest(itemRequest);
 
         log.info("Добавлена вещь - {}", item);
         return itemMapper.convertToResponseDto(itemRepository.save(item));
@@ -131,7 +145,7 @@ public class ItemServiceImpl implements ItemService {
     }
 
     @Override
-    public Collection<ItemResponseDto> searchItems(String text) {
+    public Collection<ItemResponseDto> searchItems(String text, int from, int size) {
         if (text.isEmpty()) {
             return Collections.emptyList();
         } else if (!Constants.getAlphaNumericPattern().matcher(text).matches()) {
@@ -139,9 +153,9 @@ public class ItemServiceImpl implements ItemService {
             throw new IncorrectParameterException(String.format("Передан некорректный параметр text = %s", text));
         }
         log.info("Осуществляется поиск по подстроке - {}", text);
-        return itemRepository.searchAvailableByNameOrDescriptionContainingIgnoreCase(text).stream()
-                .map(itemMapper::convertToResponseDto)
-                .collect(Collectors.toList());
+        PageRequest page = PageRequest.of(from > 0 ? from / size : 0, size);
+        return itemMapper.convertToResponseDtoCollection(
+                itemRepository.searchAvailableByNameOrDescriptionContainingIgnoreCase(text, page).getContent());
     }
 
     @Override
@@ -167,7 +181,9 @@ public class ItemServiceImpl implements ItemService {
     }
 
     private void checkIfUserExists(long userId) {
-        userRepository.findById(userId);
+        userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException(
+                        String.format("Пользователя по id = %s не существует", userId)));
     }
 
     private User getUserByIdOrElseThrow(long userId) {

@@ -12,7 +12,6 @@ import ru.practicum.shareit.user.repository.UserRepository;
 import ru.practicum.shareit.user.service.UserService;
 
 import java.util.Collection;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional(readOnly = true)
@@ -24,9 +23,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Collection<UserDto> getAll() {
-        return userRepository.findAll().stream()
-                .map(mapper::convertToDto)
-                .collect(Collectors.toList());
+        return mapper.convertToDtoCollection(userRepository.findAll());
     }
 
     @Override

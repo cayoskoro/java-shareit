@@ -5,6 +5,8 @@ import org.mapstruct.control.DeepClone;
 import ru.practicum.shareit.user.dto.UserDto;
 import ru.practicum.shareit.user.model.User;
 
+import java.util.Collection;
+
 @Mapper(componentModel = "spring", mappingControl = DeepClone.class)
 public interface UserMapper {
     @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
@@ -16,4 +18,6 @@ public interface UserMapper {
     UserDto convertToDto(User entity);
 
     User clone(User entity);
+
+    Collection<UserDto> convertToDtoCollection(Collection<User> entities);
 }
