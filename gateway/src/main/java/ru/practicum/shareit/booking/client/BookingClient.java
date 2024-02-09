@@ -47,7 +47,7 @@ public class BookingClient extends BaseClient {
                 "from", from,
                 "size", size
         );
-        return get("?" + PAGINATION_PATH_PARAMS, userId, parameters);
+        return get("?state={state}&" + PAGINATION_PATH_PARAMS, userId, parameters);
     }
 
     public ResponseEntity<Object> getAllOwnerBookings(long userId, State state, Integer from, Integer size) {
