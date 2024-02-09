@@ -13,6 +13,8 @@ import ru.practicum.shareit.item.dto.ItemRequestDto;
 
 import java.util.Map;
 
+import static ru.practicum.shareit.common.Util.PAGINATION_PATH_PARAMS;
+
 @Service
 public class ItemClient extends BaseClient {
     private static final String API_PREFIX = "/items";
@@ -32,7 +34,7 @@ public class ItemClient extends BaseClient {
                 "from", from,
                 "size", size
         );
-        return get("?from={from}&size={size}", userId, parameters);
+        return get("?" + PAGINATION_PATH_PARAMS, userId, parameters);
     }
 
     public ResponseEntity<Object> getItemById(long userId, long itemId) {
@@ -53,7 +55,7 @@ public class ItemClient extends BaseClient {
                 "from", from,
                 "size", size
         );
-        return get("/search?text={text}&from={from}&size={size}", userId, parameters);
+        return get("/search?text={text}&" + PAGINATION_PATH_PARAMS, userId, parameters);
     }
 
     public ResponseEntity<Object> addNewComment(long userId, long itemId, CommentDto commentDto) {

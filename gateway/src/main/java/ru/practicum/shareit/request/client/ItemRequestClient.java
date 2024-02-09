@@ -12,6 +12,8 @@ import ru.practicum.shareit.request.dto.ItemRequestDto;
 
 import java.util.Map;
 
+import static ru.practicum.shareit.common.Util.PAGINATION_PATH_PARAMS;
+
 @Service
 public class ItemRequestClient extends BaseClient {
     private static final String API_PREFIX = "/requests";
@@ -39,7 +41,7 @@ public class ItemRequestClient extends BaseClient {
                 "from", from,
                 "size", size
         );
-        return get("/all?from={from}&size={size}", userId, parameters);
+        return get("/all?" + PAGINATION_PATH_PARAMS, userId, parameters);
     }
 
     public ResponseEntity<Object> getItemRequest(long userId, long requestId) {

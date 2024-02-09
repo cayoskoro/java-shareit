@@ -13,6 +13,8 @@ import ru.practicum.shareit.common.client.BaseClient;
 
 import java.util.Map;
 
+import static ru.practicum.shareit.common.Util.PAGINATION_PATH_PARAMS;
+
 @Service
 public class BookingClient extends BaseClient {
     private static final String API_PREFIX = "/bookings";
@@ -45,7 +47,7 @@ public class BookingClient extends BaseClient {
                 "from", from,
                 "size", size
         );
-        return get("?state={state}&from={from}&size={size}", userId, parameters);
+        return get("?" + PAGINATION_PATH_PARAMS, userId, parameters);
     }
 
     public ResponseEntity<Object> getAllOwnerBookings(long userId, State state, Integer from, Integer size) {
@@ -54,6 +56,6 @@ public class BookingClient extends BaseClient {
                 "from", from,
                 "size", size
         );
-        return get("/owner?state={state}&from={from}&size={size}", userId, parameters);
+        return get("/owner?state={state}&" + PAGINATION_PATH_PARAMS, userId, parameters);
     }
 }

@@ -1,5 +1,6 @@
 package ru.practicum.shareit.common.client;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.*;
 import org.springframework.lang.Nullable;
 import org.springframework.web.client.HttpStatusCodeException;
@@ -8,6 +9,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 public class BaseClient {
     protected final RestTemplate rest;
 
@@ -86,7 +88,11 @@ public class BaseClient {
                 shareitServerResponse = rest.exchange(path, method, requestEntity, Object.class);
             }
         } catch (HttpStatusCodeException e) {
-            return ResponseEntity.status(e.getStatusCode()).body(e.getResponseBodyAsByteArray());
+            ResponseEntity<Object> responseError = ResponseEntity.status(e.getStatusCode())
+                    .body(e.getResponseBodyAsByteArray());
+            log.info("Запрос {} завершился с ошибкой: {} - {}", requestEntity, responseError,
+                    e.getResponseBodyAsString());
+            return responseError;
         }
         return prepareGatewayResponse(shareitServerResponse);
     }
@@ -103,7 +109,10 @@ public class BaseClient {
 
     private static ResponseEntity<Object> prepareGatewayResponse(ResponseEntity<Object> response) {
         if (response.getStatusCode().is2xxSuccessful()) {
+            log.info("Получен успешный ответ: {}", response);
             return response;
+        } else if (response.getStatusCode().isError()) {
+            log.info("Получен неуспешный ответ: {}", response);
         }
 
         ResponseEntity.BodyBuilder responseBuilder = ResponseEntity.status(response.getStatusCode());
